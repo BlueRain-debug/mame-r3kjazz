@@ -30,6 +30,9 @@ public:
 	u64 r4k_r(offs_t offset, u64 mem_mask) { return space(0).read_qword(offset << 3, mem_mask); }
 	void r4k_w(offs_t offset, u64 data, u64 mem_mask) { space(0).write_qword(offset << 3, data, mem_mask); }
 
+	u32 r3k_r(offs_t offset, u32 mem_mask) { return space(0).read_dword(offset << 2, mem_mask); }
+	void r3k_w(offs_t offset, u32 data, u32 mem_mask) { space(0).write_dword(offset << 2, data, mem_mask); }
+
 	u16 isr_r();
 	u16 imr_r() { return m_imr; }
 	void imr_w(u16 data);

@@ -26924,6 +26924,9 @@ primoc64                        // Primo C-64
 mmr4000be                       // MIPS Magnum R4000 (big)
 mmr4000le                       // MIPS Magnum R4000 (little)
 
+@source:microsoft/r3kjazz.cpp
+r3000jazz                       // R3000 Jazz Variant
+
 @source:microsoft/xbox.cpp
 xbox                            //
 
