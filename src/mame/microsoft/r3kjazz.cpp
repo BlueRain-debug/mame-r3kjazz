@@ -456,6 +456,7 @@ void r3kjazz_state::r3000jazz(machine_config &config)
 	r3kjazz(config);
 
 	m_cpu->set_endianness(ENDIANNESS_LITTLE);
+	m_cpu->set_fpu(mips1_device_base::MIPS_R3010A);
 }
 
 ROM_START(r3000jazz)
