@@ -96,6 +96,8 @@
 #define VERBOSE 0
 #include "logmacro.h"
 
+#include "jazz.lh"
+
 namespace {
 
 class r3kjazz_state : public driver_device
@@ -416,6 +418,8 @@ void r3kjazz_state::r3kjazz(machine_config &config)
 
 	// TODO: 4 EISA slots
 
+	config.set_default_layout(layout_jazz);
+
 	// software list
 	SOFTWARE_LIST(config, m_softlist).set_original("r3kjazz");
 }
@@ -456,8 +460,8 @@ void r3kjazz_state::r3000jazz(machine_config &config)
 
 ROM_START(r3000jazz)
 	ROM_REGION32_LE(0x40000, "flash", 0)
-	ROM_SYSTEM_BIOS(0, "ntprom", "R3000 Windows NT PROM")
-	ROMX_LOAD("ntprom.bin", 0x00000, 0x40000, CRC(d91018d7) SHA1(316de17820192c89b8ee6d9936ab8364a739ca53), ROM_BIOS(0))
+	ROM_SYSTEM_BIOS(0, "j3prom", "Jazz R3000 PROM")
+	ROMX_LOAD("j3prom.bin", 0x00000, 0x40000, NO_DUMP, ROM_BIOS(0))
 
 	ROM_REGION32_LE(0x800000, "graphics", 0)
 	// r3kjazz G300 (8.125MHz video clock, Bt431)
