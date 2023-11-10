@@ -278,7 +278,7 @@ static void r3kjazz_scsi_devices(device_slot_interface &device)
 
 void r3kjazz_state::r3kjazz(machine_config &config)
 {
-	R3000A(config, m_cpu, 50_MHz_XTAL);
+	R3000A(config, m_cpu, 50_MHz_XTAL, 0x10000, 0x10000);
 	m_cpu->set_addrmap(0, &r3kjazz_state::cpu_map);
 
 	RAM(config, m_ram);

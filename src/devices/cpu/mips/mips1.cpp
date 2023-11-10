@@ -1052,18 +1052,20 @@ void mips1core_device_base::handle_cop0(u32 const op)
 		switch (RTREG)
 		{
 		case 0x00: // BC0F
-			if (!m_in_brcond[0]())
-			{
-				m_branch_state = BRANCH;
-				m_branch_target = m_pc + 4 + (s32(SIMMVAL) << 2);
-			}
+			// HACK to make R3000 NT work
+			//if (!m_in_brcond[0]())
+			//{
+			//	m_branch_state = BRANCH;
+			//	m_branch_target = m_pc + 4 + (s32(SIMMVAL) << 2);
+			//}
 			break;
 		case 0x01: // BC0T
-			if (m_in_brcond[0]())
-			{
+			// HACK to make R3000 NT work
+			//if (m_in_brcond[0]())
+			//{
 				m_branch_state = BRANCH;
 				m_branch_target = m_pc + 4 + (s32(SIMMVAL) << 2);
-			}
+			//}
 			break;
 		default:
 			generate_exception(EXCEPTION_INVALIDOP);
@@ -2289,7 +2291,8 @@ mips1core_device_base::translate_result mips1_device_base::translate(int intenti
 			{
 			case 0x80000000: // kseg0: unmapped, cached, privileged
 				address &= ~0xe0000000;
-				return m_cache;
+				// HACK to make ARC firmware work on R3000
+				return UNCACHED;
 
 			case 0xa0000000: // kseg1: unmapped, uncached, privileged
 				address &= ~0xe0000000;
