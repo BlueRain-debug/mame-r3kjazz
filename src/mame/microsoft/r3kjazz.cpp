@@ -368,7 +368,7 @@ void r3kjazz_state::r3kjazz(machine_config &config)
 	m_cvc->set_vram(m_vram);
 
 	// WD16C552 (two 16550 + pc_lpt)
-	NS16550(config, m_ace[0], 4233600);
+	NS16550(config, m_ace[0], 4300800);
 	rs232_port_device &serial0(RS232_PORT(config, "serial0", default_rs232_devices, nullptr));
 
 	m_ace[0]->out_dtr_callback().set(serial0, FUNC(rs232_port_device::write_dtr));
@@ -382,7 +382,7 @@ void r3kjazz_state::r3kjazz(machine_config &config)
 	serial0.ri_handler().set(m_ace[0], FUNC(ns16550_device::ri_w));
 	serial0.rxd_handler().set(m_ace[0], FUNC(ns16550_device::rx_w));
 
-	NS16550(config, m_ace[1], 8_MHz_XTAL);
+	NS16550(config, m_ace[1], 4300800);
 	rs232_port_device &serial1(RS232_PORT(config, "serial1", default_rs232_devices, nullptr));
 
 	m_ace[1]->out_dtr_callback().set(serial1, FUNC(rs232_port_device::write_dtr));
