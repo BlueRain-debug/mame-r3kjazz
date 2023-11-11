@@ -2,13 +2,13 @@
 // copyright-holders:Patrick Mackinlay
 
 /*
- * An emulation of systems based on the r3kjazz computer architecture, originally
+ * An emulation of systems based on the jazz computer architecture, originally
  * developed by Microsoft. Specific systems which implemented this architecture
  * include the MIPS Magnum/Millenium 4000 and Olivetti M700-10.
  *
  * References:
  *
- *   https://www.linux-mips.org/wiki/r3kjazz
+ *   https://www.linux-mips.org/wiki/jazz
  *   http://gunkies.org/wiki/MIPS_Magnum
  *   http://www.sensi.org/~alec/mips/mips-history.html
  *
@@ -20,7 +20,7 @@
  *   - sound and other loose ends
  *
  * Unconfirmed parts lists from ARCSystem reference design (which appears to
- * be very similar or identical to the r3kjazz system) taken from:
+ * be very similar or identical to the jazz system) taken from:
  *   https://www.linux-mips.org/archives/riscy/1993-12/msg00013.html
  *
  *   Ref   Part                      Function
