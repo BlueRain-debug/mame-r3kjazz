@@ -56,8 +56,8 @@ void mct_adr_device::map(address_map &map)
 	map(0x000, 0x007).lrw32(NAME([this] () { return m_config; }), NAME([this] (u32 data) { m_config = data; }));
 	map(0x008, 0x00f).lr32([] () { return 1; }, "revision_level");
 	map(0x010, 0x017).lr32(NAME([this] () { m_dma_interrupt_source &= ~DMA_ADDRESS_ERROR; return m_dma_invalid_address; }));
-	map(0x018, 0x01f).lrw32(NAME([this] () { return m_trans_tbl_base; }), NAME([this] (u32 data) { LOG("tbl base 0x%08x\n", data); m_trans_tbl_base = data; }));
-	map(0x020, 0x027).lrw32(NAME([this] () { return m_trans_tbl_limit; }), NAME([this] (u32 data) { LOG("tbl limit 0x%08x\n", data); m_trans_tbl_limit = data; }));
+	map(0x018, 0x01f).lrw32(NAME([this] () { return m_trans_tbl_base; }), NAME([this] (u32 data) { printf("tbl base 0x%08x\n", data); m_trans_tbl_base = data; }));
+	map(0x020, 0x027).lrw32(NAME([this] () { return m_trans_tbl_limit; }), NAME([this] (u32 data) { printf("tbl limit 0x%08x\n", data); m_trans_tbl_limit = data; }));
 	map(0x028, 0x02f).lrw32([] () { return 0; }, "translation_invalidate_r", [] (u32 data) { }, "translation_invalidate_w");
 	map(0x030, 0x037).lw32(NAME([this] (u32 data) { m_ioc_maint = data; }));
 	map(0x038, 0x03f).lr32([] () { return 0; }, "remote_failed_address");
@@ -98,13 +98,13 @@ void mct_adr_device::map(address_map &map)
 			{
 				unsigned const reg = offset >> 1;
 
-				LOG("dma_reg %d data 0x%08x (%s)\n", offset, data, machine().describe_context());
+				printf("dma_reg %d data 0x%08x (%s)\n", offset, data, machine().describe_context().c_str());
 
 				m_dma_reg[reg] = data;
 
 				if ((reg == REG_ENABLE) && (data & DMA_ENABLE))
 				{
-					LOG("dma started address 0x%08x count %d\n", translate_address(m_dma_reg[(0 << 2) + REG_ADDRESS]), m_dma_reg[(0 << 2) + REG_COUNT]);
+					printf("dma started address 0x%08x count %d\n", translate_address(m_dma_reg[(0 << 2) + REG_ADDRESS]), m_dma_reg[(0 << 2) + REG_COUNT]);
 					if (!m_dma_check->enabled())
 						m_dma_check->adjust(attotime::zero);
 				}
@@ -187,7 +187,7 @@ void mct_adr_device::device_reset()
 void mct_adr_device::set_irq_line(int irq, int state)
 {
 	if ((irq != 3) && (m_isr & (1 << irq)) ^ (state << irq))
-		LOG("set_irq_line %d state %d m_imr 0x%04x\n", irq, state, m_imr);
+		printf("set_irq_line %d state %d m_imr 0x%04x\n", irq, state, m_imr);
 
 	if (state)
 		m_isr |= (1 << irq);
@@ -212,15 +212,17 @@ u16 mct_adr_device::isr_r()
 	u16 const pending = m_isr & m_imr;
 
 	for (u16 irq = 0; irq < 16; irq++)
-		if (BIT(pending, irq))
+		if (BIT(pending, irq)) {
+			printf("pending %d (%s)\n", irq, machine().describe_context().c_str());
 			return (irq + 1) << 2;
+		}
 
 	return 0;
 }
 
 void mct_adr_device::imr_w(u16 data)
 {
-	LOG("imr_w 0x%04x (%s)\n", data, machine().describe_context());
+	printf("imr_w 0x%04x (%s)\n", data, machine().describe_context().c_str());
 
 	m_imr = data;
 
@@ -315,13 +317,13 @@ u32 mct_adr_device::translate_address(u32 logical_address)
 	u32 page = logical_address >> 12;
 	if (page < (m_trans_tbl_limit) >> 3)
 	{
-		u32 entry_address = (m_trans_tbl_base & 0x7fffffff) + page * 8;
+		u32 entry_address = (m_trans_tbl_base & 0x0fffffff) + page * 8;
 
 		return space(0).read_dword(entry_address) | (logical_address & 0xfff);
 	}
 	else
 	{
-		logerror("failed to translate address 0x%08x\n", logical_address);
+		printf("failed to translate address 0x%08x\n", logical_address);
 
 		return 0; // FIXME: address error
 	}
