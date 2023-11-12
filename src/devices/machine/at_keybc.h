@@ -57,6 +57,8 @@ protected:
 	u8 kbd_clk_r() const;
 	u8 kbd_data_r() const;
 
+	u8 m_kbd_disabled;
+
 	required_device<upi41_cpu_device> m_mcu;
 
 private:

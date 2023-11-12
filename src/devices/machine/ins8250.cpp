@@ -250,6 +250,13 @@ int ins8250_uart_device::intrpt_r()
 void ins8250_uart_device::update_baud_rate()
 {
 	LOG("%.1f baud selected (divisor = %d)\n", double(clock()) / (m_regs.dl * 16), m_regs.dl);
+
+	if (m_regs.dl == 13) {
+		// hyenasky hack to lower the NT kernel debugger's baud rate to 9600.
+		// for some reason it was spewing horribly corrupted bytes at 19200 baud.
+		m_regs.dl = 28;
+	}
+
 	set_rate(clock(), m_regs.dl * 16);
 
 	// FIXME: Baud rate generator should not affect transmitter or receiver, but device_serial_interface resets them regardless.

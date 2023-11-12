@@ -62,7 +62,7 @@ void g332_device::device_add_mconfig(machine_config &config)
 void g300_device::map(address_map &map)
 {
 	// datasheet gives unshifted addresses
-	unsigned const shift = 2;
+	unsigned const shift = 3;
 
 	// colour palette
 	map(0x000 << shift, (0x0ff << shift) | 0x3).rw(FUNC(g300_device::colour_palette_r), FUNC(g300_device::colour_palette_w));
@@ -193,9 +193,55 @@ u32 g300_device::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, rect
 {
 	offs_t address = m_tos;
 
-	for (int y = screen.visible_area().min_y; y <= screen.visible_area().max_y; y++)
-		for (int x = screen.visible_area().min_x; x <= screen.visible_area().max_x; x++)
-			bitmap.pix(y, x) = pen_color(m_vram->read(address++ ^ m_swap) & m_mask);
+	switch (m_control & PIXEL_BITS)
+	{
+	case BPP_1:
+		for (int y = screen.visible_area().min_y; y <= screen.visible_area().max_y; y++)
+			for (int x = screen.visible_area().min_x; x <= screen.visible_area().max_x; x += 8)
+			{
+				u8 pixel_data = m_vram->read(address++ ^ m_swap);
+
+				bitmap.pix(y, x + 0) = pen_color(pixel_data & 0x1 & m_mask); pixel_data >>= 1;
+				bitmap.pix(y, x + 1) = pen_color(pixel_data & 0x1 & m_mask); pixel_data >>= 1;
+				bitmap.pix(y, x + 2) = pen_color(pixel_data & 0x1 & m_mask); pixel_data >>= 1;
+				bitmap.pix(y, x + 3) = pen_color(pixel_data & 0x1 & m_mask); pixel_data >>= 1;
+				bitmap.pix(y, x + 4) = pen_color(pixel_data & 0x1 & m_mask); pixel_data >>= 1;
+				bitmap.pix(y, x + 5) = pen_color(pixel_data & 0x1 & m_mask); pixel_data >>= 1;
+				bitmap.pix(y, x + 6) = pen_color(pixel_data & 0x1 & m_mask); pixel_data >>= 1;
+				bitmap.pix(y, x + 7) = pen_color(pixel_data & 0x1 & m_mask);
+			}
+		break;
+
+	case BPP_2:
+		for (int y = screen.visible_area().min_y; y <= screen.visible_area().max_y; y++)
+			for (int x = screen.visible_area().min_x; x <= screen.visible_area().max_x; x += 4)
+			{
+				u8 pixel_data = m_vram->read(address++ ^ m_swap);
+
+				bitmap.pix(y, x + 0) = pen_color(pixel_data & 0x3 & m_mask); pixel_data >>= 2;
+				bitmap.pix(y, x + 1) = pen_color(pixel_data & 0x3 & m_mask); pixel_data >>= 2;
+				bitmap.pix(y, x + 2) = pen_color(pixel_data & 0x3 & m_mask); pixel_data >>= 2;
+				bitmap.pix(y, x + 3) = pen_color(pixel_data & 0x3 & m_mask);
+			}
+		break;
+
+	case BPP_4:
+		for (int y = screen.visible_area().min_y; y <= screen.visible_area().max_y; y++)
+			for (int x = screen.visible_area().min_x; x <= screen.visible_area().max_x; x += 2)
+			{
+				u8 pixel_data = m_vram->read(address++ ^ m_swap);
+
+				bitmap.pix(y, x + 0) = pen_color(pixel_data & 0xf & m_mask); pixel_data >>= 4;
+				bitmap.pix(y, x + 1) = pen_color(pixel_data & 0xf & m_mask);
+			}
+		break;
+
+	case BPP_8:
+		for (int y = screen.visible_area().min_y; y <= screen.visible_area().max_y; y++)
+			for (int x = screen.visible_area().min_x; x <= screen.visible_area().max_x; x++)
+				bitmap.pix(y, x) = pen_color(m_vram->read(address++ ^ m_swap) & m_mask);
+		break;
+	}
 
 	return 0;
 }

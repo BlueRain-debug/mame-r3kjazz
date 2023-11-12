@@ -110,7 +110,7 @@ public:
 		, m_vram(*this, "vram")
 		, m_mct_adr(*this, "mct_adr")
 		, m_scsibus(*this, "scsi")
-		, m_scsi(*this, "scsi:7:ncr53cf94")
+		, m_scsi(*this, "scsi:7:ncr53c94")
 		, m_fdc(*this, "fdc")
 		, m_rtc(*this, "rtc")
 		, m_nvram(*this, "nvram")
@@ -154,7 +154,7 @@ protected:
 	required_device<ram_device> m_vram;
 	required_device<mct_adr_device> m_mct_adr;
 	required_device<nscsi_bus_device> m_scsibus;
-	required_device<ncr53cf94_device> m_scsi;
+	required_device<ncr53c94_device> m_scsi;
 	required_device<n82077aa_device> m_fdc;
 	required_device<mc146818_device> m_rtc;
 	required_device<nvram_device> m_nvram;
@@ -162,7 +162,7 @@ protected:
 	required_device<ps2_keyboard_controller_device> m_kbdc;
 	required_device<dp83932c_device> m_net;
 	required_device<screen_device> m_screen;
-	required_device<g364_device> m_cvc;
+	required_device<g300_device> m_cvc;
 	required_device_array<ns16550_device, 2> m_ace;
 	required_device<pc_lpt_device> m_lpt;
 	required_device<i82357_device> m_isp;
@@ -205,21 +205,21 @@ void r3kjazz_state::mct_map(address_map &map)
 	//map(0x60020000, 0x60020000); // reset
 
 	// VDR1F "Fission"
-	map(0x60000000, 0x6007ffff).rom().region("graphics", 0);
-	map(0x60080000, 0x60081fff).m(m_cvc, FUNC(g364_device::map));
-	map(0x60100000, 0x60100000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_BIG); }, "little_endian");
-	map(0x60102000, 0x60102000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_LITTLE); }, "big_endian");
-	map(0x60180000, 0x60180000).lw8([this] (u8 data) { m_cvc->reset(); }, "g364_reset");
+	//map(0x60000000, 0x6007ffff).rom().region("graphics", 0);
+	//map(0x60080000, 0x60081fff).m(m_cvc, FUNC(g364_device::map));
+	//map(0x60100000, 0x60100000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_BIG); }, "little_endian");
+	//map(0x60102000, 0x60102000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_LITTLE); }, "big_endian");
+	//map(0x60180000, 0x60180000).lw8([this] (u8 data) { m_cvc->reset(); }, "g364_reset");
 	//map(0x60182000, 0x60182000); // TODO: monitor
 
 	// VDR2
-	//map(0x60000000, 0x60000fff).m(m_cvc, FUNC(g300_device::map));
+	map(0x60000000, 0x60000fff).m(m_cvc, FUNC(g300_device::map));
 	//map(0x60008000, 0x60008fff).m(m_cursor, FUNC(bt431_device::map)).umask32(0x000000ff);
 
 	map(0x80000000, 0x80000fff).m(m_mct_adr, FUNC(mct_adr_device::map));
 
 	map(0x80001000, 0x800010ff).m(m_net, FUNC(dp83932c_device::map)).umask32(0x0000ffff);
-	map(0x80002000, 0x8000200f).m(m_scsi, FUNC(ncr53cf94_device::map));
+	map(0x80002000, 0x8000200f).m(m_scsi, FUNC(ncr53c94_device::map));
 	map(0x80003000, 0x8000300f).m(m_fdc, FUNC(n82077aa_device::map));
 
 	// LE: only reads 4000
@@ -273,7 +273,7 @@ void r3kjazz_state::mct_map(address_map &map)
 static void r3kjazz_scsi_devices(device_slot_interface &device)
 {
 	device.option_add("harddisk", NSCSI_HARDDISK);
-	device.option_add("cdrom", NSCSI_CDROM);
+	//device.option_add("cdrom", NSCSI_CDROM);
 }
 
 void r3kjazz_state::r3kjazz(machine_config &config)
@@ -306,19 +306,19 @@ void r3kjazz_state::r3kjazz(machine_config &config)
 	NSCSI_CONNECTOR(config, "scsi:3", r3kjazz_scsi_devices, nullptr);
 	NSCSI_CONNECTOR(config, "scsi:4", r3kjazz_scsi_devices, nullptr);
 	NSCSI_CONNECTOR(config, "scsi:5", r3kjazz_scsi_devices, nullptr);
-	NSCSI_CONNECTOR(config, "scsi:6", r3kjazz_scsi_devices, "cdrom");
+	NSCSI_CONNECTOR(config, "scsi:6", r3kjazz_scsi_devices, nullptr);
 
 	// scsi host adapter
-	NSCSI_CONNECTOR(config, "scsi:7").option_set("ncr53cf94", NCR53CF94).clock(24_MHz_XTAL).machine_config(
+	NSCSI_CONNECTOR(config, "scsi:7").option_set("ncr53c94", NCR53C94).clock(24_MHz_XTAL).machine_config(
 		[this] (device_t *device)
 		{
-			ncr53cf94_device &adapter = downcast<ncr53cf94_device &>(*device);
+			ncr53c94_device &adapter = downcast<ncr53c94_device &>(*device);
 
 			adapter.irq_handler_cb().set(m_mct_adr, FUNC(mct_adr_device::irq<5>));
 			adapter.drq_handler_cb().set(m_mct_adr, FUNC(mct_adr_device::drq<0>));
 
-			subdevice<mct_adr_device>(":mct_adr")->dma_r_cb<0>().set(adapter, FUNC(ncr53cf94_device::dma_r));
-			subdevice<mct_adr_device>(":mct_adr")->dma_w_cb<0>().set(adapter, FUNC(ncr53cf94_device::dma_w));
+			subdevice<mct_adr_device>(":mct_adr")->dma_r_cb<0>().set(adapter, FUNC(ncr53c94_device::dma_r));
+			subdevice<mct_adr_device>(":mct_adr")->dma_w_cb<0>().set(adapter, FUNC(ncr53c94_device::dma_w));
 		});
 
 	// floppy controller and drive
@@ -348,7 +348,7 @@ void r3kjazz_state::r3kjazz(machine_config &config)
 	aux_con.out_data_cb().set(m_kbdc, FUNC(ps2_keyboard_controller_device::aux_data_w));
 
 	// keyboard controller
-	PS2_KEYBOARD_CONTROLLER(config, m_kbdc, 12_MHz_XTAL);
+	PS2_KEYBOARD_CONTROLLER(config, m_kbdc, 8_MHz_XTAL);
 	// FIXME: reset is probably routed through the MCT-ADR
 	m_kbdc->hot_res().set([this] (int state) { machine().schedule_soft_reset(); });
 	m_kbdc->kbd_clk().set(kbd_con, FUNC(pc_kbdc_device::clock_write_from_mb));
@@ -360,10 +360,10 @@ void r3kjazz_state::r3kjazz(machine_config &config)
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_raw(78643200, 1280, 0, 1280, 1024, 0, 1024);
-	m_screen->set_screen_update(m_cvc, FUNC(g364_device::screen_update));
+	m_screen->set_screen_update(m_cvc, FUNC(g300_device::screen_update));
 	m_screen->screen_vblank().set(m_mct_adr, FUNC(mct_adr_device::irq<3>)); // maybe?
 
-	G364(config, m_cvc, 5_MHz_XTAL); // FIXME: guessed clock
+	G300(config, m_cvc, 5_MHz_XTAL); // FIXME: guessed clock
 	m_cvc->set_screen(m_screen);
 	m_cvc->set_vram(m_vram);
 
@@ -464,7 +464,7 @@ ROM_START(r3000jazz)
 	ROM_SYSTEM_BIOS(0, "j3prom", "Jazz R3000 PROM")
 	ROMX_LOAD("j3prom.bin", 0x00000, 0x40000, NO_DUMP, ROM_BIOS(0))
 
-	ROM_REGION32_LE(0x800000, "graphics", 0)
+	//ROM_REGION32_LE(0x800000, "graphics", 0)
 	// r3kjazz G300 (8.125MHz video clock, Bt431)
 	//ROM_LOAD64_BYTE("r3kjazz_g300.bin", 0x00, 0x40, CRC(258eb00a) SHA1(6e3fd0272957524de82e7042d6e36aca492c4d26) BAD_DUMP)
 	// r3kjazz G364 (8.125MHz video clock)
@@ -472,7 +472,7 @@ ROM_START(r3000jazz)
 	// r3kjazz VXL (aka Jaguar, part number 09-00184, Bt484 or Bt485)
 	//ROM_LOAD64_BYTE("r3kjazz_vxl.bin", 0x000000, 0x010000, CRC(8edf1a62) SHA1(7750833eac0708ee79f01f36523554d29a094692) BAD_DUMP)
 	// MIPS G364 (5MHz video clock, part number 09-00176)
-	ROM_LOAD32_BYTE("mips_g364.bin", 0x000000, 0x020000, CRC(be6a726e) SHA1(225c198f6a7f8445dac3de052ecceecbb5be6bc7) BAD_DUMP)
+	//ROM_LOAD32_BYTE("mips_g364.bin", 0x000000, 0x020000, CRC(be6a726e) SHA1(225c198f6a7f8445dac3de052ecceecbb5be6bc7) BAD_DUMP)
 ROM_END
 
 }

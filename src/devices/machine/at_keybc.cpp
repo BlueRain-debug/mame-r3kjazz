@@ -304,6 +304,7 @@ void at_kbc_device_base::device_start()
 	m_hot_res = m_gate_a20 = m_kbd_irq = 0U;
 	m_kbd_clk_in = m_kbd_clk_out = 1U;
 	m_kbd_data_in = m_kbd_data_out = 1U;
+	m_kbd_disabled = 0;
 }
 
 inline void at_kbc_device_base::set_hot_res(u8 state)
@@ -353,6 +354,12 @@ TIMER_CALLBACK_MEMBER(at_kbc_device_base::write_data)
 
 TIMER_CALLBACK_MEMBER(at_kbc_device_base::write_command)
 {
+	if (u8(u32(param)) == 0xAD)
+		m_kbd_disabled = 1;
+
+	if (u8(u32(param)) == 0xAE)
+		m_kbd_disabled = 0;
+
 	m_mcu->upi41_master_w(1U, u8(u32(param)));
 }
 
@@ -401,7 +408,11 @@ void at_keyboard_controller_device::p2_w(uint8_t data)
 {
 	set_hot_res(BIT(~data, 0));
 	set_gate_a20(BIT(data, 1));
-	set_kbd_irq(BIT(data, 4));
+
+	if (m_kbd_disabled == 0)
+		if (BIT(data, 4))
+			set_kbd_irq(1U);
+
 	set_kbd_clk_out(BIT(~data, 6));
 	set_kbd_data_out(BIT(data, 7));
 }
@@ -537,9 +548,12 @@ void ps2_keyboard_controller_device::p2_w(uint8_t data)
 	set_kbd_clk_out(BIT(~data, 6));
 	set_kbd_data_out(BIT(~data, 7));
 
-	if (BIT(data & ~m_p2_data, 4))
-		set_kbd_irq(1U);
+	if (m_kbd_disabled == 0)
+		if (BIT(data & ~m_p2_data, 4))
+			set_kbd_irq(1U);
+
 	if (BIT(data & ~m_p2_data, 5))
 		set_aux_irq(1U);
+
 	m_p2_data = data;
 }

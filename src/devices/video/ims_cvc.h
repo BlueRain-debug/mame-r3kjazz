@@ -20,7 +20,6 @@ public:
 	template <typename T> void set_vram(T &&tag) { m_vram.set_tag(std::forward<T>(tag)); }
 
 	virtual void map(address_map &map) = 0;
-	virtual u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, rectangle const &cliprect) = 0;
 	virtual void set_swapped(bool swapped) { m_swap = swapped ? 3 : 0; }
 
 protected:
@@ -65,10 +64,6 @@ protected:
 	void mask_w(u32 data) { m_mask = data & MASK24; }
 	void tos_w(u32 data) { m_tos = data & MASK24; }
 
-	// colour palette handlers
-	u32 colour_palette_r(offs_t offset) { return u32(pen_color(offset >> 1)) & MASK24; }
-	void colour_palette_w(offs_t offset, u32 data) { set_pen_color(offset >> 1, data >> 16, data >> 8, data >> 0); }
-
 	required_device<screen_device> m_screen;
 	required_device<ram_device> m_vram;
 
@@ -100,7 +95,49 @@ public:
 
 	virtual void map(address_map &map) override;
 
-	virtual u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, rectangle const &cliprect) override;
+	virtual u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, rectangle const &cliprect);
+
+	// colour palette handlers
+	u32 colour_palette_r(offs_t offset) { return u32(pen_color(offset >> 1)) & MASK24; }
+	void colour_palette_w(offs_t offset, u32 data) { set_pen_color(offset >> 1, data >> 0, data >> 8, data >> 16); }
+
+	enum control_mask
+	{
+		VTG_ENABLE     = 0x000001, // video timing generator enable
+		INTL_ENABLE    = 0x000002, // interlace enable
+		SLAVE_MODE     = 0x000004, // slave/master operating mode
+		SYNC_PATTERN   = 0x000008, // plain/tesselated sync
+		SYNC_FORMAT    = 0x000010, // separate/composite sync
+		VIDEO_FORMAT   = 0x000020, // video only/composite video + sync
+		WHO_KNOWS_1    = 0x000040,
+		WHO_KNOWS_2    = 0x000080,
+		MODE2          = 0x000100, // mode 2
+		SYNC_DELAY     = 0x000E00,
+		BLACK          = 0x001000,
+		WHO_KNOWS_4    = 0x002000,
+		DMA_DISABLE    = 0x004000, // DMA disabled/enabled
+		BLANK_DISABLE  = 0x008000, // blanking disabled/enabled
+		BLANK_FORCE    = 0x010000, // screen blanked/no action
+		PIXEL_BITS     = 0x060000, // bits per pixel
+		ADDR_INC       = 0x180000, // VRAM address increment
+		INTL_FORMAT    = 0x200000, // ccir/eia interlace format
+		WHO_KNOWS_5    = 0x400000,
+		DISABLE_DELAY  = 0x800000,
+	};
+	enum control_addr_inc_mask
+	{
+		INC_1    = 0x000000,
+		INC_256  = 0x008000,
+		INC_512  = 0x010000,
+		INC_1024 = 0x018000,
+	};
+	enum control_bpp_mask
+	{
+		BPP_1  = 0x000000,
+		BPP_2  = 0x020000,
+		BPP_4  = 0x040000,
+		BPP_8  = 0x060000,
+	};
 
 protected:
 	virtual void device_start() override;
@@ -119,7 +156,7 @@ public:
 
 	virtual void map(address_map &map) override;
 
-	virtual u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, rectangle const &cliprect) override;
+	virtual u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, rectangle const &cliprect);
 
 	enum boot_mask : u32
 	{
@@ -166,6 +203,10 @@ public:
 		BPP_15 = 0x400000,
 		BPP_16 = 0x500000,
 	};
+
+	// colour palette handlers
+	u32 colour_palette_r(offs_t offset) { return u32(pen_color(offset >> 1)) & MASK24; }
+	void colour_palette_w(offs_t offset, u32 data) { set_pen_color(offset >> 1, data >> 16, data >> 8, data >> 0); }
 
 protected:
 	g332_device(machine_config const &mconfig, device_type type, char const *tag, device_t *owner, u32 clock);
