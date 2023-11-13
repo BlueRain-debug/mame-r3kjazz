@@ -278,8 +278,12 @@ static void r3kjazz_scsi_devices(device_slot_interface &device)
 
 void r3kjazz_state::r3kjazz(machine_config &config)
 {
-	R3000A(config, m_cpu, 50_MHz_XTAL, 0x10000, 0x10000);
+	R3000A(config, m_cpu, 25_MHz_XTAL, 0x10000, 0x10000);
 	m_cpu->set_addrmap(0, &r3kjazz_state::cpu_map);
+
+	// Set this to 1 because NT uses it to tell if the write buffer is empty.
+	// We have no write buffer!
+	m_cpu->in_brcond<0>().set([]() { return 1; });
 
 	RAM(config, m_ram);
 	m_ram->set_default_size("16M");

@@ -1052,20 +1052,18 @@ void mips1core_device_base::handle_cop0(u32 const op)
 		switch (RTREG)
 		{
 		case 0x00: // BC0F
-			// HACK to make R3000 NT work
-			//if (!m_in_brcond[0]())
-			//{
-			//	m_branch_state = BRANCH;
-			//	m_branch_target = m_pc + 4 + (s32(SIMMVAL) << 2);
-			//}
-			break;
-		case 0x01: // BC0T
-			// HACK to make R3000 NT work
-			//if (m_in_brcond[0]())
-			//{
+			if (!m_in_brcond[0]())
+			{
 				m_branch_state = BRANCH;
 				m_branch_target = m_pc + 4 + (s32(SIMMVAL) << 2);
-			//}
+			}
+			break;
+		case 0x01: // BC0T
+			if (m_in_brcond[0]())
+			{
+				m_branch_state = BRANCH;
+				m_branch_target = m_pc + 4 + (s32(SIMMVAL) << 2);
+			}
 			break;
 		default:
 			generate_exception(EXCEPTION_INVALIDOP);
