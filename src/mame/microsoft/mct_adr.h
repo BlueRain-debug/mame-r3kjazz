@@ -73,8 +73,6 @@ private:
 	devcb_write8::array<4> m_dma_w;
 	bool m_drq_active[4];
 
-	emu_timer *m_irq_check;
-	emu_timer *m_dma_check;
 	emu_timer *m_interval_timer;
 
 	enum isr_mask : u16

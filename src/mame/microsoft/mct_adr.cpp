@@ -105,8 +105,8 @@ void mct_adr_device::map(address_map &map)
 				if ((reg == REG_ENABLE) && (data & DMA_ENABLE))
 				{
 					printf("dma started address 0x%08x count %d\n", translate_address(m_dma_reg[(0 << 2) + REG_ADDRESS]), m_dma_reg[(0 << 2) + REG_COUNT]);
-					if (!m_dma_check->enabled())
-						m_dma_check->adjust(attotime::zero);
+
+					machine().scheduler().synchronize(timer_expired_delegate(FUNC(mct_adr_device::dma_check), this), 0);
 				}
 			}, "dma_reg_w");
 	map(0x200, 0x207).lr32(NAME([this] () { return m_dma_interrupt_source; }));
@@ -148,8 +148,6 @@ void mct_adr_device::device_start()
 	m_ioc_physical_tag = 0;
 	m_ioc_logical_tag = 0;
 
-	m_irq_check = timer_alloc(FUNC(mct_adr_device::irq_check), this);
-	m_dma_check = timer_alloc(FUNC(mct_adr_device::dma_check), this);
 	m_interval_timer = timer_alloc(FUNC(mct_adr_device::interval_timer), this);
 
 	m_out_int_timer_asserted = false;
@@ -186,19 +184,25 @@ void mct_adr_device::device_reset()
 
 void mct_adr_device::set_irq_line(int irq, int state)
 {
-	if ((irq != 3) && (m_isr & (1 << irq)) ^ (state << irq))
-		printf("set_irq_line %d state %d m_imr 0x%04x\n", irq, state, m_imr);
-
-	if (state)
-		m_isr |= (1 << irq);
-	else
-		m_isr &= ~(1 << irq);
-
-	m_irq_check->adjust(attotime::zero);
+	machine().scheduler().synchronize(timer_expired_delegate(FUNC(mct_adr_device::irq_check), this), (irq << 8) | state);
 }
 
 TIMER_CALLBACK_MEMBER(mct_adr_device::irq_check)
 {
+
+	if (u32(param) != -1) {
+		int irq = u32(param) >> 8;
+		int state = u32(param) & 0xFF;
+
+		if ((irq != 3) && (m_isr & (1 << irq)) ^ (state << irq))
+			printf("set_irq_line %d state %d m_imr 0x%04x\n", irq, state, m_imr);
+
+		if (state)
+			m_isr |= (1 << irq);
+		else
+			m_isr &= ~(1 << irq);
+	}
+
 	if (bool(m_isr & m_imr) != m_out_int_device_asserted)
 	{
 		m_out_int_device_asserted = bool(m_isr & m_imr);
@@ -226,7 +230,7 @@ void mct_adr_device::imr_w(u16 data)
 
 	m_imr = data;
 
-	m_irq_check->adjust(attotime::zero);
+	machine().scheduler().synchronize(timer_expired_delegate(FUNC(mct_adr_device::irq_check), this), u32(-1));
 }
 
 TIMER_CALLBACK_MEMBER(mct_adr_device::interval_timer)
@@ -244,7 +248,7 @@ void mct_adr_device::set_drq_line(int channel, int state)
 	m_drq_active[channel] = state == ASSERT_LINE;
 
 	if (state)
-		m_dma_check->adjust(attotime::zero);
+		machine().scheduler().synchronize(timer_expired_delegate(FUNC(mct_adr_device::dma_check), this), 0);
 }
 
 TIMER_CALLBACK_MEMBER(mct_adr_device::dma_check)
@@ -309,7 +313,7 @@ TIMER_CALLBACK_MEMBER(mct_adr_device::dma_check)
 	}
 
 	if (active)
-		m_dma_check->adjust(attotime::zero);
+		machine().scheduler().synchronize(timer_expired_delegate(FUNC(mct_adr_device::dma_check), this), 0);
 }
 
 u32 mct_adr_device::translate_address(u32 logical_address)
