@@ -2352,7 +2352,7 @@ mips1core_device_base::translate_result mips1_device_base::translate(int intenti
 		if (i > 0)
 			std::swap(mru[i - 1], mru[i]);
 
-		return (entry[1] & EL_N) ? UNCACHED : m_cache;
+		return UNCACHED;
 	}
 
 	if (!machine().side_effects_disabled() && !debug)

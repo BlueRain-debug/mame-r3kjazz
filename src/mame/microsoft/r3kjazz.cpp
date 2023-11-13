@@ -413,7 +413,7 @@ void r3kjazz_state::r3kjazz(machine_config &config)
 	I82357(config, m_isp, 14.318181_MHz_XTAL);
 	m_isp->out_rtc_address_cb().set(m_rtc, FUNC(mc146818_device::address_w));
 	m_isp->out_int_cb().set_inputline(m_cpu, INPUT_LINE_IRQ2);
-	m_isp->out_nmi_cb().set_inputline(m_cpu, INPUT_LINE_IRQ3);
+	//m_isp->out_nmi_cb().set_inputline(m_cpu, INPUT_LINE_IRQ3);
 	m_isp->out_spkr_cb().set(m_buzzer, FUNC(speaker_sound_device::level_w));
 
 	// TODO: 4 EISA slots
