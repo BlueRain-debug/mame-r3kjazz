@@ -63,7 +63,7 @@ public:
 	void chesskng(machine_config &config);
 
 protected:
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 
 private:
 	required_device<cpu_device> m_maincpu;
@@ -74,8 +74,12 @@ private:
 	required_device<beep_device> m_beeper;
 	required_device<generic_slot_device> m_cart;
 
-	void chesskng_map(address_map &map);
-	void chesskng_io(address_map &map);
+	uint8_t m_3f_data = 0;
+	uint8_t m_cart_bank = 0;
+	uint16_t m_beeper_freq = 0;
+
+	void chesskng_map(address_map &map) ATTR_COLD;
+	void chesskng_io(address_map &map) ATTR_COLD;
 
 	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
 	uint8_t cartridge_r(offs_t offset);
@@ -96,10 +100,6 @@ private:
 	void unk_6f_w(uint8_t data);
 
 	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
-
-	uint8_t m_3f_data = 0;
-	uint8_t m_cart_bank = 0;
-	uint16_t m_beeper_freq = 0;
 };
 
 void chessking_state::machine_start()

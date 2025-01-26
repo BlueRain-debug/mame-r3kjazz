@@ -336,11 +336,11 @@ void nl_convert_spice_t::convert_block(const str_list &contents)
 	int linenumber = 1;
 	for (const auto &line : contents)
 	{
-		try 
+		try
 		{
 			process_line(line);
 		}
-		catch (const plib::pexception &e)
+		catch ([[maybe_unused]] const plib::pexception &e)
 		{
 			fprintf(stderr, "Error on line: <%d>\n", linenumber);
 			throw;

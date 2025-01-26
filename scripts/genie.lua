@@ -121,6 +121,11 @@ newoption {
 }
 
 newoption {
+	trigger = "with-emulator",
+	description = "Enable building emulator.",
+}
+
+newoption {
 	trigger = "with-tests",
 	description = "Enable building tests.",
 }
@@ -529,30 +534,32 @@ msgprecompile ("Precompiling $(subst ../,,$<)...")
 
 messageskip { "SkipCreatingMessage", "SkipBuildingMessage", "SkipCleaningMessage" }
 
-if (_OPTIONS["PROJECT"] ~= nil) then
-	PROJECT_DIR = path.join(path.getabsolute(".."),"projects",_OPTIONS["PROJECT"]) .. "/"
-	if (not os.isfile(path.join("..", "projects", _OPTIONS["PROJECT"], "scripts", "target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))) then
-		error("File definition for TARGET=" .. _OPTIONS["target"] .. " SUBTARGET=" .. _OPTIONS["subtarget"] .. " does not exist")
-	end
-	dofile (path.join(".." ,"projects", _OPTIONS["PROJECT"], "scripts", "target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))
-elseif (_OPTIONS["SOURCES"] == nil) and (_OPTIONS["SOURCEFILTER"] == nil) then
-	local subtargetscript = path.join("target", _OPTIONS["target"], _OPTIONS["subtarget"] .. ".lua")
-	local subtargetfilter = path.join(MAME_DIR, "src", _OPTIONS["target"], _OPTIONS["subtarget"] .. ".flt")
-	if os.isfile(subtargetscript) then
-		dofile(subtargetscript)
-	elseif os.isfile(subtargetfilter) then
-		local makedep = path.join(MAME_DIR, "scripts", "build", "makedep.py")
-		local driverlist = path.join(MAME_DIR, "src", _OPTIONS["target"], _OPTIONS["target"] .. ".lst")
-		local OUT_STR = os.outputof(
-			string.format(
-				"%s %s -r %s filterproject -t %s -f %s %s",
-				PYTHON, makedep, MAME_DIR, _OPTIONS["subtarget"], subtargetfilter, driverlist))
-		if #OUT_STR == 0 then
-			error("Error creating projects from driver filter file for subtarget " .. _OPTIONS["subtarget"])
+if _OPTIONS["with-emulator"] then
+	if (_OPTIONS["PROJECT"] ~= nil) then
+		PROJECT_DIR = path.join(path.getabsolute(".."),"projects",_OPTIONS["PROJECT"]) .. "/"
+		if (not os.isfile(path.join("..", "projects", _OPTIONS["PROJECT"], "scripts", "target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))) then
+			error("File definition for TARGET=" .. _OPTIONS["target"] .. " SUBTARGET=" .. _OPTIONS["subtarget"] .. " does not exist")
 		end
-		load(OUT_STR)()
-	else
-		error("Definition file for TARGET=" .. _OPTIONS["target"] .. " SUBTARGET=" .. _OPTIONS["subtarget"] .. " does not exist")
+		dofile (path.join(".." ,"projects", _OPTIONS["PROJECT"], "scripts", "target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))
+	elseif (_OPTIONS["SOURCES"] == nil) and (_OPTIONS["SOURCEFILTER"] == nil) then
+		local subtargetscript = path.join("target", _OPTIONS["target"], _OPTIONS["subtarget"] .. ".lua")
+		local subtargetfilter = path.join(MAME_DIR, "src", _OPTIONS["target"], _OPTIONS["subtarget"] .. ".flt")
+		if os.isfile(subtargetscript) then
+			dofile(subtargetscript)
+		elseif os.isfile(subtargetfilter) then
+			local makedep = path.join(MAME_DIR, "scripts", "build", "makedep.py")
+			local driverlist = path.join(MAME_DIR, "src", _OPTIONS["target"], _OPTIONS["target"] .. ".lst")
+			local OUT_STR = os.outputof(
+				string.format(
+					"%s %s -r %s filterproject -t %s -f %s %s",
+					PYTHON, makedep, MAME_DIR, _OPTIONS["subtarget"], subtargetfilter, driverlist))
+			if #OUT_STR == 0 then
+				error("Error creating projects from driver filter file for subtarget " .. _OPTIONS["subtarget"])
+			end
+			load(OUT_STR)()
+		else
+			error("Definition file for TARGET=" .. _OPTIONS["target"] .. " SUBTARGET=" .. _OPTIONS["subtarget"] .. " does not exist")
+		end
 	end
 end
 
@@ -703,16 +710,28 @@ end
 
 if not _OPTIONS["FORCE_DRC_C_BACKEND"] then
 	if _OPTIONS["BIGENDIAN"]~="1" then
-		configuration { "x64" }
-			defines {
-				"NATIVE_DRC=drcbe_x64",
-			}
-		configuration { "x32" }
-			defines {
-				"NATIVE_DRC=drcbe_x86",
-			}
-		configuration {  }
+		if (_OPTIONS["PLATFORM"]=="arm64") then
+			configuration { }
+				defines {
+					"NATIVE_DRC=drcbe_arm64",
+				}
+		else
+			configuration { "x64" }
+				defines {
+					"NATIVE_DRC=drcbe_x64",
+				}
+			configuration { "x32" }
+				defines {
+					"NATIVE_DRC=drcbe_x86",
+				}
+			configuration {  }
+		end
 	end
+
+	configuration { }
+		defines {
+			"ASMJIT_STATIC",
+		}
 end
 
 	defines {
@@ -1028,29 +1047,23 @@ end
 
 		local version = str_to_version(_OPTIONS["gcc_version"])
 		if string.find(_OPTIONS["gcc"], "clang") or string.find(_OPTIONS["gcc"], "asmjs") or string.find(_OPTIONS["gcc"], "android") then
-			if version < 60000 then
-				print("Clang version 6.0 or later needed")
+			if version < 70000 then
+				print("Clang version 7.0 or later needed")
 				os.exit(-1)
 			end
 			buildoptions {
 				"-fdiagnostics-show-note-include-stack",
+				"-Wno-error=tautological-compare",
 				"-Wno-cast-align",
 				"-Wno-constant-logical-operand",
 				"-Wno-extern-c-compat",
 				"-Wno-ignored-qualifiers",
 				"-Wno-pragma-pack", -- clang 6.0 complains when the packing change lifetime is not contained within a header file.
-				"-Wno-tautological-compare",
 				"-Wno-unknown-attributes",
 				"-Wno-unknown-warning-option",
 				"-Wno-unused-value",
 				"-Wno-unused-const-variable",
 			}
-			if (version < 70000) or ((version < 100001) and (_OPTIONS["targetos"] == 'macosx')) then
-				buildoptions { -- clang 6.0 complains that [[maybe_unused]] is ignored for static data members
-					"-Wno-error=ignored-attributes",
-					"-Wno-error=unused-const-variable",
-				}
-			end
 			if ((version >= 100000) and (_OPTIONS["targetos"] ~= 'macosx')) or (version >= 120000) then
 				buildoptions {
 					"-Wno-xor-used-as-pow", -- clang 10.0 complains that expressions like 10 ^ 7 look like exponention
@@ -1062,8 +1075,8 @@ end
 				}
 			end
 		else
-			if version < 70000 then
-				print("GCC version 7.0 or later needed")
+			if version < 100300 then
+				print("GCC version 10.3 or later needed")
 				os.exit(-1)
 			end
 			buildoptions_cpp {
@@ -1075,23 +1088,14 @@ end
 			buildoptions {
 				"-Wno-error=unused-result", -- needed for fgets,fread on linux
 				-- array bounds checking seems to be buggy in 4.8.1 (try it on video/stvvdp1.c and video/model1.c without -Wno-array-bounds)
-				"-Wno-array-bounds",
+				"-Wno-error=array-bounds",
 				"-Wno-error=attributes", -- GCC fails to recognize some uses of [[maybe_unused]]
+				"-Wno-error=stringop-truncation", -- ImGui again
+				"-Wno-stringop-overflow", -- generates false positives when assigning an int rvalue to a u8 variable without an explicit cast
 			}
-			if version < 100300 then
-				buildoptions_cpp {
-					"-flifetime-dse=1", -- GCC 10.2 and earlier take issue with Sol's get<std::optional<T> >() otherwise - possibly an issue with libstdc++ itself
-				}
-			end
-			if version >= 80000 then
-				buildoptions {
-					"-Wno-stringop-truncation", -- ImGui again
-					"-Wno-stringop-overflow",   -- formats/victor9k_dsk.cpp bugs the compiler
-				}
-				buildoptions_cpp {
-					"-Wno-class-memaccess", -- many instances in ImGui and BGFX
-				}
-			end
+			buildoptions_cpp {
+				"-Wno-error=class-memaccess", -- many instances in ImGui and BGFX
+			}
 			if version >= 110000 then
 				buildoptions {
 					"-Wno-nonnull",                 -- luaengine.cpp lambdas do not need "this" captured but GCC 11.1 erroneously insists
@@ -1165,6 +1169,9 @@ configuration { "asmjs" }
 	buildoptions_cpp {
 		"-std=c++17",
 		"-s EXCEPTION_CATCHING_ALLOWED=\"['_ZN15running_machine17start_all_devicesEv','_ZN12cli_frontend7executeEiPPc','_ZN8chd_file11open_commonEb','_ZN8chd_file13read_metadataEjjRNSt3__212basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE','_ZN8chd_file13read_metadataEjjRNSt3__26vectorIhNS0_9allocatorIhEEEE','_ZNK19netlist_mame_device19base_validity_checkER16validity_checker']\"",
+	}
+	defines {
+		"ASIO_HAS_PTHREADS",
 	}
 	linkoptions {
 		"-Wl,--start-group",
@@ -1298,12 +1305,13 @@ configuration { "vs20*" }
 		}
 
 		buildoptions {
+			"/Zc:preprocessor",
+			"/utf-8",
+			"/permissive-",
 			"/w45038", -- warning C5038: data member 'member1' will be initialized after data member 'member2'
 		}
 
 		buildoptions {
-			"/wd4003", -- warning C4003: not enough actual parameters for macro 'xxx'
-			"/wd4005", -- warning C4005: The macro identifier is defined twice. The compiler uses the second macro definition
 			"/wd4018", -- warning C4018: 'x' : signed/unsigned mismatch
 			"/wd4060", -- warning C4060: switch statement contains no 'case' or 'default' labels
 			"/wd4065", -- warning C4065: switch statement contains 'default' but no 'case' labels
@@ -1315,6 +1323,7 @@ configuration { "vs20*" }
 			"/wd4245", -- warning C4245: 'conversion' : conversion from 'type1' to 'type2', signed/unsigned mismatch
 			"/wd4250", -- warning C4250: 'xxx' : inherits 'xxx' via dominance
 			"/wd4267", -- warning C4267: 'var' : conversion from 'size_t' to 'type', possible loss of data
+			"/wd4305", -- warning C4305: 'conversion': truncation from 'type1' to 'type2'
 			"/wd4310", -- warning C4310: cast truncates constant value
 			"/wd4319", -- warning C4319: 'operator' : zero extending 'type' to 'type' of greater size
 			"/wd4324", -- warning C4324: 'xxx' : structure was padded due to __declspec(align())
@@ -1325,10 +1334,11 @@ configuration { "vs20*" }
 			"/wd4458", -- warning C4458: declaration of 'xxx' hides class member
 			"/wd4459", -- warning C4459: declaration of 'xxx' hides global declaration
 			"/wd4611", -- warning C4611: interaction between '_setjmp' and C++ object destruction is non-portable
+			"/wd4646", -- warning C4646: function declared with 'noreturn' has non-void return type
+			"/wd4701", -- warning C4701: potentially uninitialized local variable 'name' used
 			"/wd4702", -- warning C4702: unreachable code
-			"/wd4706", -- warning C4706: assignment within conditional expression
-			"/wd4804", -- warning C4804: '>>': unsafe use of type 'bool' in operation
 			"/wd4805", -- warning C4805: 'x' : unsafe mix of type 'xxx' and type 'xxx' in operation
+			"/wd4806", -- warning C4806: 'operation': unsafe operation: no value of type 'type' promoted to type 'type' can equal the given constant
 			"/wd4996", -- warning C4996: 'function': was declared deprecated
 		}
 
@@ -1480,32 +1490,34 @@ group "core"
 
 dofile(path.join("src", "emu.lua"))
 
-if (STANDALONE~=true) then
-	dofile(path.join("src", "mame", "frontend.lua"))
-end
-
 group "devices"
 dofile(path.join("src", "devices.lua"))
 devicesProject(_OPTIONS["target"],_OPTIONS["subtarget"])
 
-if (STANDALONE~=true) then
-	group "drivers"
-	findfunction("createProjects_" .. _OPTIONS["target"] .. "_" .. _OPTIONS["subtarget"])(_OPTIONS["target"], _OPTIONS["subtarget"])
-end
-
-group "emulator"
-dofile(path.join("src", "main.lua"))
-if (_OPTIONS["SOURCES"] == nil) and (_OPTIONS["SOURCEFILTER"] == nil) then
-	if (_OPTIONS["target"] == _OPTIONS["subtarget"]) then
-		startproject (_OPTIONS["target"])
-	else
-		startproject (_OPTIONS["target"] .. _OPTIONS["subtarget"])
+if _OPTIONS["with-emulator"] then
+	if (STANDALONE~=true) then
+		dofile(path.join("src", "mame", "frontend.lua"))
 	end
-else
-	startproject (_OPTIONS["subtarget"])
+
+	if (STANDALONE~=true) then
+		group "drivers"
+		findfunction("createProjects_" .. _OPTIONS["target"] .. "_" .. _OPTIONS["subtarget"])(_OPTIONS["target"], _OPTIONS["subtarget"])
+	end
+
+	group "emulator"
+	dofile(path.join("src", "main.lua"))
+	if (_OPTIONS["SOURCES"] == nil) and (_OPTIONS["SOURCEFILTER"] == nil) then
+		if (_OPTIONS["target"] == _OPTIONS["subtarget"]) then
+			startproject (_OPTIONS["target"])
+		else
+			startproject (_OPTIONS["target"] .. _OPTIONS["subtarget"])
+		end
+	else
+		startproject (_OPTIONS["subtarget"])
+	end
+	mainProject(_OPTIONS["target"],_OPTIONS["subtarget"])
+	strip()
 end
-mainProject(_OPTIONS["target"],_OPTIONS["subtarget"])
-strip()
 
 if _OPTIONS["with-tools"] then
 	group "tools"
@@ -1530,10 +1542,15 @@ function generate_has_header(hashname, hash)
    file:write(string.format("#ifndef GENERATED_HAS_%s_H\n", hashname))
    file:write(string.format("#define GENERATED_HAS_%s_H\n", hashname))
    file:write("\n")
-   for k, v in ipairs(hash) do
+   active = {}
+   for k, v in pairs(hash) do
 	  if v then
-		 file:write(string.format("#define HAS_%s_%s\n", hashname, k))
+		 active[#active+1] = k
 	  end
+   end
+   table.sort(active)
+   for _, k in ipairs(active) do
+	  file:write(string.format("#define HAS_%s_%s\n", hashname, k))
    end
    file:write("\n")
    file:write("#endif\n")

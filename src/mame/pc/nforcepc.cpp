@@ -35,7 +35,7 @@
 #include "machine/pci-ide.h"
 #include "machine/pckeybrd.h"
 #include "bus/isa/isa.h"
-#include "video/virge_pci.h"
+#include "bus/pci/virge_pci.h"
 
 #include "formats/naslite_dsk.h"
 
@@ -97,8 +97,7 @@ void crush11_host_device::device_start()
 {
 	pci_host_device::device_start();
 	set_multifunction_device(true);
-	memory_space = &cpu->space(AS_DATA);
-	io_space = &cpu->space(AS_IO);
+	set_spaces(&cpu->space(AS_DATA), &cpu->space(AS_IO));
 
 	memory_window_start = 0;
 	memory_window_end = 0xffffffff;
@@ -1091,14 +1090,14 @@ public:
 	nforcepc_state(const machine_config &mconfig, device_type type, const char *tag);
 
 private:
-	void nforce_map(address_map &map);
-	void nforce_map_io(address_map &map);
+	void nforce_map(address_map &map) ATTR_COLD;
+	void nforce_map_io(address_map &map) ATTR_COLD;
 	void boot_state_award_w(uint8_t data);
 	IRQ_CALLBACK_MEMBER(irq_callback);
 	void maincpu_interrupt(int state);
 
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 	required_device<cpu_device> m_maincpu;
 	required_device<mcpx_isalpc_device> isalpc;
@@ -1239,7 +1238,7 @@ void nforcepc_state::nforcepc(machine_config &config)
 	ide.subdevice<ide_controller_32_device>("ide1")->options(ata_devices, "hdd", nullptr, true);
 	ide.subdevice<ide_controller_32_device>("ide2")->options(ata_devices, "cdrom", nullptr, true);
 	NV2A_AGP(config, "pci:1e.0", 0, 0x10de01b7, 0xb2); // 10de:01b7 NVIDIA Corporation nForce AGP to PCI Bridge
-	VIRGEDX_PCI(config, "pci:0a.0", 0);
+	PCI_SLOT(config, "pci:1", pci_cards, 10, 0, 1, 2, 3, "virgedx");
 	SST_49LF020(config, "bios", 0);
 
 	FLOPPY_CONNECTOR(config, "pci:01.0:0:fdc:0", pc_hd_floppies, "35hd", floppy_formats);
@@ -1281,4 +1280,4 @@ ROM_END
 static INPUT_PORTS_START(nforcepc)
 INPUT_PORTS_END
 
-COMP(2002, nforcepc, 0, 0, nforcepc, nforcepc, nforcepc_state, empty_init, "Nvidia", "Nvidia nForce PC (CRUSH11/12)", MACHINE_IS_SKELETON)
+COMP(2002, nforcepc, 0, 0, nforcepc, nforcepc, nforcepc_state, empty_init, "Nvidia", "Nvidia nForce PC (CRUSH11/12)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)

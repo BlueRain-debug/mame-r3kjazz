@@ -54,8 +54,8 @@ public:
 	DECLARE_INPUT_CHANGED_MEMBER(key_on);
 
 protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 private:
 	required_device<cpu_device> m_maincpu;
@@ -68,13 +68,13 @@ private:
 	required_ioport_array<8> m_keyboard;
 	required_device<speaker_sound_device> m_speaker;
 	required_device_array<psion_ssd_device, 2> m_ssd;
-	required_device_array<psion_module_slot_device, 3> m_exp;
+	required_device_array<psion_module_slot_device, 2> m_exp;
 
 	void palette_init(palette_device &palette);
 
-	void mem_map(address_map &map);
-	void io_map(address_map &map);
-	void asic1_map(address_map &map);
+	void mem_map(address_map &map) ATTR_COLD;
+	void io_map(address_map &map) ATTR_COLD;
+	void asic1_map(address_map &map) ATTR_COLD;
 
 	uint8_t port_data_r();
 	void port_data_w(uint8_t data);
@@ -195,7 +195,7 @@ static INPUT_PORTS_START( psionhc_uk )
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_UNUSED)
 
 	PORT_START("ON_OFF")
-	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F12) PORT_CHAR(UCHAR_MAMEKEY(F12)) PORT_NAME("On Off") PORT_CHANGED_MEMBER(DEVICE_SELF, psionhc_state, key_on, 0)
+	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F12) PORT_CHAR(UCHAR_MAMEKEY(F12)) PORT_NAME("On Off") PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(psionhc_state::key_on), 0)
 INPUT_PORTS_END
 
 //static INPUT_PORTS_START( psionhc_num )
@@ -260,7 +260,7 @@ INPUT_PORTS_END
 //  PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_UNUSED)
 //
 //  PORT_START("ON_OFF")
-//  PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F12) PORT_CHAR(UCHAR_MAMEKEY(F12)) PORT_NAME("On Off") PORT_CHANGED_MEMBER(DEVICE_SELF, psionhc_state, key_on, 0)
+//  PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F12) PORT_CHAR(UCHAR_MAMEKEY(F12)) PORT_NAME("On Off") PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(psionhc_state::key_on), 0)
 //INPUT_PORTS_END
 
 INPUT_CHANGED_MEMBER(psionhc_state::key_on)
@@ -343,8 +343,8 @@ void psionhc_state::psionhc100(machine_config &config)
 	m_asic2->data_w<5>().set(m_exp[1], FUNC(psion_module_slot_device::data_w));
 	m_asic2->data_r<6>().set(m_exp[0], FUNC(psion_module_slot_device::data_r)); // Expansion port A
 	m_asic2->data_w<6>().set(m_exp[0], FUNC(psion_module_slot_device::data_w));
-	m_asic2->data_r<7>().set(m_exp[2], FUNC(psion_module_slot_device::data_r)); // Expansion port C
-	m_asic2->data_w<7>().set(m_exp[2], FUNC(psion_module_slot_device::data_w));
+	//m_asic2->data_r<7>().set(m_exp[2], FUNC(psion_module_slot_device::data_r));
+	//m_asic2->data_w<7>().set(m_exp[2], FUNC(psion_module_slot_device::data_w));
 
 	PSION_PSU_ASIC3(config, m_asic3);
 
@@ -360,8 +360,6 @@ void psionhc_state::psionhc100(machine_config &config)
 	m_exp[0]->intr_cb().set(m_asic1, FUNC(psion_asic1_device::eint2_w));
 	PSION_MODULE_SLOT(config, m_exp[1], psion_hcmodule_devices, nullptr);
 	m_exp[1]->intr_cb().set(m_asic1, FUNC(psion_asic1_device::eint1_w));
-	PSION_MODULE_SLOT(config, m_exp[2], psion_hcmodule_devices, nullptr);
-	m_exp[2]->intr_cb().set(m_asic1, FUNC(psion_asic1_device::eint3_w));
 
 	SOFTWARE_LIST(config, "ssd_list").set_original("psion_ssd").set_filter("HC");
 }
@@ -394,6 +392,11 @@ ROM_START( psionhc120 )
 	ROM_RELOAD(0x20000, 0x20000)
 	ROMX_LOAD("v170f_2.bin", 0x40000, 0x20000, CRC(edd6a78d) SHA1(61344cd38928183b0e2c58ebfe92984518d8e731), ROM_BIOS(1))
 	ROM_RELOAD(0x60000, 0x20000)
+	ROM_SYSTEM_BIOS(2, "164f", "V1.64F")
+	ROMX_LOAD("v164f_1.bin", 0x00000, 0x20000, CRC(33d2a85e) SHA1(80d01396a626387e662ffb8da746eb863a040072), ROM_BIOS(2))
+	ROM_RELOAD(0x20000, 0x20000)
+	ROMX_LOAD("v164f_2.bin", 0x40000, 0x20000, CRC(12da077a) SHA1(ef1a9cb651bf8020a6428f0044c01d8603ac225f), ROM_BIOS(2))
+	ROM_RELOAD(0x60000, 0x20000)
 ROM_END
 
 #define rom_psionhc100 rom_psionhc120
@@ -403,6 +406,6 @@ ROM_END
 
 
 //    YEAR  NAME         PARENT       COMPAT  MACHINE       INPUT        CLASS           INIT         COMPANY   FULLNAME    FLAGS
-COMP( 1991, psionhc100,  psionhc120,  0,      psionhc100,   psionhc_uk,  psionhc_state,  empty_init,  "Psion",  "HC 100",   0 )
-COMP( 1991, psionhc110,  psionhc120,  0,      psionhc110,   psionhc_uk,  psionhc_state,  empty_init,  "Psion",  "HC 110",   0 )
-COMP( 1991, psionhc120,  0,           0,      psionhc120,   psionhc_uk,  psionhc_state,  empty_init,  "Psion",  "HC 120",   0 )
+COMP( 1991, psionhc100,  psionhc120,  0,      psionhc100,   psionhc_uk,  psionhc_state,  empty_init,  "Psion",  "HC 100",   MACHINE_SUPPORTS_SAVE )
+COMP( 1991, psionhc110,  psionhc120,  0,      psionhc110,   psionhc_uk,  psionhc_state,  empty_init,  "Psion",  "HC 110",   MACHINE_SUPPORTS_SAVE )
+COMP( 1991, psionhc120,  0,           0,      psionhc120,   psionhc_uk,  psionhc_state,  empty_init,  "Psion",  "HC 120",   MACHINE_SUPPORTS_SAVE )

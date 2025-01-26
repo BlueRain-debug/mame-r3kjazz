@@ -90,9 +90,9 @@ public:
 	void init_hnfubuki();
 
 protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
-	virtual void video_start() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
+	virtual void video_start() override ATTR_COLD;
 
 private:
 	// video-related
@@ -132,15 +132,13 @@ private:
 	void draw_layer_interleaved(bitmap_rgb32 &bitmap, const rectangle &cliprect, uint16_t row, uint16_t y, uint8_t x_count, int left_pixmap, int right_pixmap, int palbase, bool transp);
 	void irqhandler(int state);
 
-	void hnayayoi_map(address_map &map);
-	void hnayayoi_io_map(address_map &map);
-	void hnfubuki_map(address_map &map);
-	void untoucha_map(address_map &map);
-	void untoucha_io_map(address_map &map);
+	void hnayayoi_map(address_map &map) ATTR_COLD;
+	void hnayayoi_io_map(address_map &map) ATTR_COLD;
+	void hnfubuki_map(address_map &map) ATTR_COLD;
+	void untoucha_map(address_map &map) ATTR_COLD;
+	void untoucha_io_map(address_map &map) ATTR_COLD;
 };
 
-
-// video
 
 /***************************************************************************
 
@@ -383,8 +381,6 @@ MC6845_UPDATE_ROW(hnayayoi_state::untoucha_update_row)
 	draw_layer_interleaved(bitmap, cliprect, y + 16, y, x_count, 1, 0, col0, true);
 }
 
-
-// machine
 
 template <uint8_t Which>
 uint8_t hnayayoi_state::keyboard_r()
@@ -670,7 +666,7 @@ static INPUT_PORTS_START( hnayayoi ) // test mode shows and test 3 dip banks, bu
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNUSED )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNUSED )
 	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_SERVICE ) PORT_NAME(DEF_STR( Test )) // there is also a dip switch
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE2 )  PORT_NAME("Analizer")
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_GAMBLE_BOOK ) // "Anarizer"
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_UNKNOWN ) // "Non Use" in service mode
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN2 )  // "Note" ("Paper Money") = 10 Credits
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_IMPULSE(2)
@@ -760,7 +756,7 @@ static INPUT_PORTS_START( hnfubuki )
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNUSED )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNUSED )
 	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_SERVICE ) PORT_NAME(DEF_STR( Test ))
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE2 )  PORT_NAME("Analizer")
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_GAMBLE_BOOK ) // "Anarizer"
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_MEMORY_RESET )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN2 )  // "Note" ("Paper Money") = 10 Credits
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_IMPULSE(2)
@@ -824,7 +820,7 @@ static INPUT_PORTS_START( untoucha )
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNUSED )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_UNUSED )
 	PORT_BIT( 0x04, IP_ACTIVE_LOW, IPT_SERVICE ) PORT_NAME(DEF_STR( Test ))
-	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_SERVICE2 )  PORT_NAME("Analizer")
+	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_GAMBLE_BOOK ) // "Analizer Key"
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_MEMORY_RESET )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN2 )  // "Note" ("Paper Money") = 5 or 8 Credits
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_IMPULSE(2)
@@ -1116,5 +1112,5 @@ void hnayayoi_state::init_hnfubuki()
 
 
 GAME( 1987, hnayayoi, 0,        hnayayoi, hnayayoi, hnayayoi_state, empty_init,    ROT0, "Dyna Electronics", "Hana Yayoi (Japan)",        MACHINE_SUPPORTS_SAVE )
-GAME( 1987, hnfubuki, hnayayoi, hnfubuki, hnfubuki, hnayayoi_state, init_hnfubuki, ROT0, "Dynax",            "Hana Fubuki [BET] (Japan)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, hnfubuki, hnayayoi, hnfubuki, hnfubuki, hnayayoi_state, init_hnfubuki, ROT0, "Dynax",            "Hana Fubuki (Japan)",       MACHINE_SUPPORTS_SAVE )
 GAME( 1987, untoucha, 0,        untoucha, untoucha, hnayayoi_state, empty_init,    ROT0, "Dynax",            "Untouchable (Ver. 2.10)",   MACHINE_SUPPORTS_SAVE )

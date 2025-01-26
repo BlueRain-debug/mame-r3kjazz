@@ -38,7 +38,7 @@ public:
 		, m_keyboard(*this, "COL%u", 0U)
 		, m_speaker(*this, "speaker")
 		, m_ssd(*this, "ssd%u", 1U)
-		//, m_exp(*this, "exp%u", 1U)
+		//, m_exp(*this, "exp")
 	{ }
 
 	void workabout(machine_config &config);
@@ -48,8 +48,8 @@ public:
 	DECLARE_INPUT_CHANGED_MEMBER(wakeup);
 
 protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 private:
 	required_device<psion_asic9_device> m_asic9;
@@ -59,7 +59,7 @@ private:
 	required_ioport_array<8> m_keyboard;
 	required_device<speaker_sound_device> m_speaker;
 	required_device_array<psion_ssd_device, 2> m_ssd;
-	//required_device_array<psion_exp_slot_device, 3> m_exp;
+	//required_device<psion_exp_slot_device> m_exp;
 
 	void palette_init(palette_device &palette);
 
@@ -89,7 +89,7 @@ static INPUT_PORTS_START( workabout )
 	PORT_BIT(0x020, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_6)          PORT_CHAR('6')  PORT_CHAR('^')  PORT_CHAR('}')
 	PORT_BIT(0x040, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_DOWN)       PORT_CHAR(UCHAR_MAMEKEY(DOWN))                  PORT_NAME(UTF8_DOWN)
 	PORT_BIT(0x080, IP_ACTIVE_HIGH, IPT_UNUSED)
-	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_ESC)        PORT_CHAR(UCHAR_MAMEKEY(ESC))                   PORT_NAME("On/Esc")          PORT_CHANGED_MEMBER(DEVICE_SELF, workabout_state, wakeup, 0)
+	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_ESC)        PORT_CHAR(UCHAR_MAMEKEY(ESC))                   PORT_NAME("On/Esc")          PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(workabout_state::wakeup), 0)
 
 	PORT_START("COL1")
 	PORT_BIT(0x001, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_T)          PORT_CHAR('t')  PORT_CHAR('T')
@@ -229,9 +229,7 @@ void workabout_state::workabout(machine_config &config)
 	PSION_SSD(config, m_ssd[1]);
 	m_ssd[1]->door_cb().set(m_asic9, FUNC(psion_asic9_device::medchng_w));
 
-	//PSION_EXP_SLOT(config, m_exp[0], psion_exp_devices, nullptr);
-	//PSION_EXP_SLOT(config, m_exp[1], psion_exp_devices, nullptr);
-	//PSION_EXP_SLOT(config, m_exp[2], psion_exp_devices, nullptr);
+	//PSION_EXP_SLOT(config, m_exp, psion_exp_devices, nullptr);
 
 	SOFTWARE_LIST(config, "ssd_list").set_original("psion_ssd").set_filter("WA");
 }
@@ -275,5 +273,5 @@ ROM_END
 
 
 //    YEAR  NAME       PARENT  COMPAT  MACHINE    INPUT      CLASS            INIT        COMPANY   FULLNAME        FLAGS
-COMP( 1995, psionwa,   0,      0,      psionwa,   workabout, workabout_state, empty_init, "Psion",  "Workabout",    0 )
-COMP( 1998, psionwamx, 0,      0,      psionwamx, workabout, workabout_state, empty_init, "Psion",  "Workabout mx", 0 )
+COMP( 1995, psionwa,   0,      0,      psionwa,   workabout, workabout_state, empty_init, "Psion",  "Workabout",    MACHINE_SUPPORTS_SAVE )
+COMP( 1998, psionwamx, 0,      0,      psionwamx, workabout, workabout_state, empty_init, "Psion",  "Workabout mx", MACHINE_SUPPORTS_SAVE )

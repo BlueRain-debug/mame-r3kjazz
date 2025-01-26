@@ -213,7 +213,14 @@ void md_cons_slot_state::ms_megadriv(machine_config &config)
 	md_exp_port(config);
 
 	MD_CART_SLOT(config, m_cart, md_cart, nullptr).set_must_be_loaded(true);
-	SOFTWARE_LIST(config, "cart_list").set_original("megadriv");
+	SOFTWARE_LIST(config, "cart_list").set_original("megadriv").set_filter("NTSC-U");
+}
+
+void md_cons_slot_state::ms_megadrivj(machine_config &config)
+{
+	ms_megadriv(config);
+
+	subdevice<software_list_device>("cart_list")->set_filter("NTSC-J");
 }
 
 void md_cons_slot_state::ms_megadpal(machine_config &config)
@@ -226,7 +233,7 @@ void md_cons_slot_state::ms_megadpal(machine_config &config)
 	md_exp_port(config);
 
 	MD_CART_SLOT(config, m_cart, md_cart, nullptr).set_must_be_loaded(true);
-	SOFTWARE_LIST(config, "cart_list").set_original("megadriv");
+	SOFTWARE_LIST(config, "cart_list").set_original("megadriv").set_filter("PAL");
 }
 
 void md_cons_slot_state::ms_megadriv2(machine_config &config)
@@ -238,10 +245,10 @@ void md_cons_slot_state::ms_megadriv2(machine_config &config)
 	md_ctrl_ports(config);
 
 	MD_CART_SLOT(config, m_cart, md_cart, nullptr).set_must_be_loaded(true);
-	SOFTWARE_LIST(config, "cart_list").set_original("megadriv");
+	SOFTWARE_LIST(config, "cart_list").set_original("megadriv").set_filter("NTSC-U");
 }
 
-void md_cons_slot_state::ms_megajet(machine_config &config)
+void md_cons_slot_state::ms_nomad(machine_config &config)
 {
 	ms_megadriv2(config);
 
@@ -250,10 +257,18 @@ void md_cons_slot_state::ms_megajet(machine_config &config)
 	m_ctrl_ports[0]->set_fixed(true);
 }
 
+void md_cons_slot_state::ms_megajet(machine_config &config)
+{
+	ms_nomad(config);
+
+	subdevice<software_list_device>("cart_list")->set_filter("NTSC-J");
+}
+
 void md_cons_slot_state::genesis_tmss(machine_config &config)
 {
 	ms_megadriv(config);
-	subdevice<software_list_device>("cart_list")->set_filter("TMSS");
+
+	subdevice<software_list_device>("cart_list")->set_filter("NTSC-U,TMSS");
 }
 
 void md_cons_state::dcat16_megadriv(machine_config &config)
@@ -307,6 +322,48 @@ ROM_START(dcat16)
 
 	ROM_REGION( 0x10000, "soundcpu", ROMREGION_ERASEFF)
 ROM_END
+
+
+ROM_START(mahg156)
+	ROM_REGION(0x8000000, "mainrom", ROMREGION_ERASEFF)
+	ROM_LOAD16_WORD_SWAP( "md156.u3", 0x0000,  0x8000000, CRC(665fc68c) SHA1(6b765f96716c4a0abf3d27252ec82be6b0d9a985) )
+
+	ROM_REGION(0x8000000, "maincpu", ROMREGION_ERASEFF)
+//  the Megadrive ROMs for the most part appear to be hacked versions of the games / old scene dumps
+//  some are region locked to differing regions (not all games present in ROM appear on the menu)
+//  ROM_COPY( "mainrom", 0x0000000, 0, 0x080000) // FORGOTTEN WORLDS
+//  ROM_COPY( "mainrom", 0x0080000, 0, 0x080000) // FIRE PRO WRESTLING
+//  ROM_COPY( "mainrom", 0x0100000, 0, 0x080000) // GHOST BUSTERS
+//  ROM_COPY( "mainrom", 0x0180000, 0, 0x080000) // DICK TRACY
+//  ROM_COPY( "mainrom", 0x0200000, 0, 0x080000) // DEVIL CRASH
+//  ROM_COPY( "mainrom", 0x0280000, 0, 0x080000) // DECAP ATTACK
+//  ROM_COPY( "mainrom", 0x0300000, 0, 0x080000) // DARWIN 4081
+//  ROM_COPY( "mainrom", 0x0380000, 0, 0x080000) // CRACK DOWN
+//  ROM_COPY( "mainrom", 0x0400000, 0, 0x080000) // CAPTAIN PLANET
+//  ROM_COPY( "mainrom", 0x0480000, 0, 0x080000) // CALIFORNIA GAMES
+//  ROM_COPY( "mainrom", 0x0500000, 0, 0x080000) // CADASH
+//  ROM_COPY( "mainrom", 0x0580000, 0, 0x080000) // BOOGIE WOOGIE BOWLING
+//  ROM_COPY( "mainrom", 0x0600000, 0, 0x080000) // BIMINI RUN
+//  ROM_COPY( "mainrom", 0x0700000, 0, 0x080000) // BATTLE TOADS
+//  ROM_COPY( "mainrom", 0x0780000, 0, 0x080000) // TROUBLE SHOOTER
+//  ROM_COPY( "mainrom", 0x0800000, 0, 0x080000) // BURNING FORCE
+//  ROM_COPY( "mainrom", 0x0880000, 0, 0x080000) // FAERY TALE ADVENTURE
+//  ROM_COPY( "mainrom", 0x0900000, 0, 0x080000) // E-SWAT
+//  ROM_COPY( "mainrom", 0x0980000, 0, 0x080000) // ELEMENTAL MASTER
+//  ROM_COPY( "mainrom", 0x0a00000, 0, 0x080000) // EA HOCKEY
+//  ROM_COPY( "mainrom", 0x0a80000, 0, 0x080000) // DARK CASTLE
+//  ROM_COPY( "mainrom", 0x0b00000, 0, 0x080000) // CYBORG JUSTICE (CENSOR)
+//  ROM_COPY( "mainrom", 0x0b80000, 0, 0x080000) // LITTLE MERMAID
+//  ROM_COPY( "mainrom", 0x0c00000, 0, 0x080000) // DORAEMON
+//  ROM_COPY( "mainrom", 0x0c80000, 0, 0x080000) // SONIC
+//  ROM_COPY( "mainrom", 0x0d00000, 0, 0x080000) // WANI WANI WORLD
+//  ROM_COPY( "mainrom", 0x0d80000, 0, 0x080000) // GOLDEN AXE 2
+//  etc.
+	ROM_COPY( "mainrom", 0x7800000, 0x00000, 0x200000) // DMC RedKid (Menu, requires unusual rendering mode?)
+
+	ROM_REGION( 0x10000, "soundcpu", ROMREGION_ERASEFF)
+ROM_END
+
 
 ROM_START(megajet)
 	ROM_REGION(MD_CPU_REGION_SIZE, "maincpu", ROMREGION_ERASEFF)
@@ -600,7 +657,7 @@ void md_cons_cd_state::genesis_scd(machine_config &config)
 
 	CDROM(config, "cdrom").set_interface("scd_cdrom");
 
-	SOFTWARE_LIST(config, "cd_list").set_original("segacd");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("NTSC-U");
 }
 
 void md_cons_cd_state::genesis2_scd(machine_config &config)
@@ -620,7 +677,7 @@ void md_cons_cd_state::genesis2_scd(machine_config &config)
 
 	CDROM(config, "cdrom").set_interface("scd_cdrom");
 
-	SOFTWARE_LIST(config, "cd_list").set_original("segacd");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("NTSC-U");
 }
 
 void md_cons_cd_state::md_scd(machine_config &config)
@@ -641,7 +698,7 @@ void md_cons_cd_state::md_scd(machine_config &config)
 
 	CDROM(config, "cdrom").set_interface("scd_cdrom");
 
-	SOFTWARE_LIST(config, "cd_list").set_original("megacd");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("PAL");
 }
 
 void md_cons_cd_state::md2_scd(machine_config &config)
@@ -661,7 +718,7 @@ void md_cons_cd_state::md2_scd(machine_config &config)
 
 	CDROM(config, "cdrom").set_interface("scd_cdrom");
 
-	SOFTWARE_LIST(config, "cd_list").set_original("megacd");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("PAL");
 }
 
 void md_cons_cd_state::mdj_scd(machine_config &config)
@@ -682,7 +739,7 @@ void md_cons_cd_state::mdj_scd(machine_config &config)
 
 	CDROM(config, "cdrom").set_interface("scd_cdrom");
 
-	SOFTWARE_LIST(config, "cd_list").set_original("megacdj");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("NTSC-J");
 }
 
 void md_cons_cd_state::md2j_scd(machine_config &config)
@@ -702,7 +759,7 @@ void md_cons_cd_state::md2j_scd(machine_config &config)
 
 	CDROM(config, "cdrom").set_interface("scd_cdrom");
 
-	SOFTWARE_LIST(config, "cd_list").set_original("megacdj");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("NTSC-J");
 }
 
 /******************SEGA CD + 32X****************************/
@@ -724,7 +781,7 @@ void md_cons_cd_state::genesis_32x_scd(machine_config &config)
 	GENERIC_CARTSLOT(config, "cartslot", generic_plain_slot, "_32x_cart", "32x,bin").set_device_load(FUNC(md_cons_cd_state::_32x_cart));
 
 	//config.m_perfect_cpu_quantum = subtag("32x_master_sh2");
-	SOFTWARE_LIST(config, "cd_list").set_original("segacd");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("NTSC-U");
 }
 
 void md_cons_cd_state::md_32x_scd(machine_config &config)
@@ -744,7 +801,7 @@ void md_cons_cd_state::md_32x_scd(machine_config &config)
 	GENERIC_CARTSLOT(config, "cartslot", generic_plain_slot, "_32x_cart", "32x,bin").set_device_load(FUNC(md_cons_cd_state::_32x_cart));
 
 	//config.m_perfect_cpu_quantum = subtag("32x_master_sh2");
-	SOFTWARE_LIST(config, "cd_list").set_original("megacd");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("PAL");
 }
 
 void md_cons_cd_state::mdj_32x_scd(machine_config &config)
@@ -764,7 +821,7 @@ void md_cons_cd_state::mdj_32x_scd(machine_config &config)
 	GENERIC_CARTSLOT(config, "cartslot", generic_plain_slot, "_32x_cart", "32x,bin").set_device_load(FUNC(md_cons_cd_state::_32x_cart));
 
 	//config.m_perfect_cpu_quantum = subtag("32x_master_sh2");
-	SOFTWARE_LIST(config, "cd_list").set_original("megacdj");
+	SOFTWARE_LIST(config, "cd_list").set_original("megacd").set_filter("NTSC-J");
 }
 
 /* We need proper names for most of these BIOS ROMs! */
@@ -984,7 +1041,7 @@ ROM_END
 /*    YEAR  NAME          PARENT    COMPAT  MACHINE          INPUT     CLASS          INIT          COMPANY   FULLNAME */
 CONS( 1989, genesis,      0,        0,      ms_megadriv,     md,       md_cons_slot_state, init_genesis, "Sega",   "Genesis (USA, NTSC)",  MACHINE_SUPPORTS_SAVE )
 CONS( 1990, megadriv,     genesis,  0,      ms_megadpal,     md,       md_cons_slot_state, init_md_eur,  "Sega",   "Mega Drive (Europe, PAL)", MACHINE_SUPPORTS_SAVE )
-CONS( 1988, megadrij,     genesis,  0,      ms_megadriv,     md,       md_cons_slot_state, init_md_jpn,  "Sega",   "Mega Drive (Japan, NTSC)", MACHINE_SUPPORTS_SAVE )
+CONS( 1988, megadrij,     genesis,  0,      ms_megadrivj,    md,       md_cons_slot_state, init_md_jpn,  "Sega",   "Mega Drive (Japan, NTSC)", MACHINE_SUPPORTS_SAVE )
 
 // 1990+ models had the TMSS security chip, leave this as a clone, it reduces compatibility and nothing more.
 CONS( 1990, genesis_tmss, genesis,  0,      genesis_tmss,    md,       md_cons_slot_state, init_genesis, "Sega",   "Genesis (USA, NTSC, with TMSS chip)",  MACHINE_SUPPORTS_SAVE )
@@ -1015,7 +1072,7 @@ CONS( 1995, 32x_mcd,      32x_scd,  0,      md_32x_scd,      md,       md_cons_c
 CONS( 1994, 32x_mcdj,     32x_scd,  0,      mdj_32x_scd,     md,       md_cons_cd_state, init_md_jpn,  "Sega",   "Mega-CD with 32X (Japan, NTSC)", MACHINE_NOT_WORKING )
 
 // handheld hardware
-CONS( 1995, gen_nomd,     0,        0,      ms_megajet,      gen_nomd, md_cons_slot_state, init_genesis, "Sega",   "Genesis Nomad (USA Genesis handheld)",  MACHINE_SUPPORTS_SAVE )
+CONS( 1995, gen_nomd,     0,        0,      ms_nomad,        gen_nomd, md_cons_slot_state, init_genesis, "Sega",   "Genesis Nomad (USA Genesis handheld)",  MACHINE_SUPPORTS_SAVE )
 
 // handheld without LCD
 CONS( 1993, megajet,      gen_nomd, 0,      ms_megajet,      md,       md_cons_slot_state, init_md_jpn,  "Sega",   "Mega Jet (Japan Mega Drive handheld)",  MACHINE_SUPPORTS_SAVE )
@@ -1028,3 +1085,5 @@ CONS( 1993, laseractj,    laseract, 0,      mdj_scd,         md,       md_cons_c
 
 /* clone hardware - not sure if this hardware is running some kind of emulator, or enhanced MD clone, or just custom banking */
 CONS( 200?, dcat16,       0,        0,      dcat16_megadriv, md,       md_cons_slot_state, init_genesis, "Firecore",   "D-CAT16 (Mega Drive handheld)",  MACHINE_NOT_WORKING )
+// seems to be based on the AT games units, requires custom mode for menu?
+CONS( 201?, mahg156,      0,        0,      dcat16_megadriv, md,       md_cons_slot_state, init_genesis, "<unknown>",   "Mini Arcade Handheld Game Console 2.8 Inch Screen Built in 156 Retro Games (Mega Drive handheld)",  MACHINE_NOT_WORKING )

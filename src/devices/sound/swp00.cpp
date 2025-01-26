@@ -91,6 +91,8 @@ const std::array<s32, 16> swp00_device::panmap = {
 	0x300, 0x340, 0x380, 0xfff
 };
 
+const std::array<u8, 4> swp00_device::dpcm_offset = { 7, 6, 4, 0 };
+
 bool swp00_device::istep(s32 &value, s32 limit, s32 step)
 {
 	//  fprintf(stderr, "istep(%x, %x, %x)\n", value, limit, step);
@@ -314,7 +316,7 @@ void swp00_device::device_start()
 	save_item(NAME(m_pitch));
 	save_item(NAME(m_sample_start));
 	save_item(NAME(m_sample_end));
-	save_item(NAME(m_sample_dec_and_format));
+	save_item(NAME(m_sample_dpcm_and_format));
 	save_item(NAME(m_sample_address));
 	save_item(NAME(m_lfo_step));
 	save_item(NAME(m_lfo_pmod_depth));
@@ -342,6 +344,7 @@ void swp00_device::device_start()
 	save_item(NAME(m_dpcm_current));
 	save_item(NAME(m_dpcm_next));
 	save_item(NAME(m_dpcm_address));
+	save_item(NAME(m_dpcm_sum));
 
 	for(int i=0; i != 128; i++) {
 		u32 v = 0;
@@ -359,7 +362,7 @@ void swp00_device::device_start()
 	// Delta-packed samples decompression.
 
 	for(int i=0; i<128; i++) {
-		s16 base = ((i & 0x1f) << (5+(i >> 5))) + (((1 << (i >> 5))-1) << 10);
+		s16 base = ((i & 0x1f) << (3+(i >> 5))) + (((1 << (i >> 5))-1) << 8);
 		m_dpcm[i | 0x80] = - base;
 		m_dpcm[i]        = + base;
 	}
@@ -449,7 +452,7 @@ void swp00_device::device_reset()
 	std::fill(m_pitch.begin(), m_pitch.end(), 0);
 	std::fill(m_sample_start.begin(), m_sample_start.end(), 0);
 	std::fill(m_sample_end.begin(), m_sample_end.end(), 0);
-	std::fill(m_sample_dec_and_format.begin(), m_sample_dec_and_format.end(), 0);
+	std::fill(m_sample_dpcm_and_format.begin(), m_sample_dpcm_and_format.end(), 0);
 	std::fill(m_sample_address.begin(), m_sample_address.end(), 0);
 	std::fill(m_lfo_step.begin(), m_lfo_step.end(), 0);
 	std::fill(m_lfo_pmod_depth.begin(), m_lfo_pmod_depth.end(), 0);
@@ -477,6 +480,7 @@ void swp00_device::device_reset()
 	std::fill(m_dpcm_current.begin(), m_dpcm_current.end(), false);
 	std::fill(m_dpcm_next.begin(), m_dpcm_next.end(), false);
 	std::fill(m_dpcm_address.begin(), m_dpcm_address.end(), false);
+	std::fill(m_dpcm_sum.begin(), m_dpcm_sum.end(), 0);
 }
 
 void swp00_device::rom_bank_pre_change()
@@ -514,7 +518,7 @@ void swp00_device::map(address_map &map)
 	rchan(map, 0x2d).rw(FUNC(swp00_device::var_level_r), FUNC(swp00_device::var_level_w));
 	rchan(map, 0x2e).rw(FUNC(swp00_device::glo_level_r), FUNC(swp00_device::glo_level_w));
 	rchan(map, 0x2f).rw(FUNC(swp00_device::panning_r), FUNC(swp00_device::panning_w));
-	rchan(map, 0x30).rw(FUNC(swp00_device::sample_dec_and_format_r), FUNC(swp00_device::sample_dec_and_format_w));
+	rchan(map, 0x30).rw(FUNC(swp00_device::sample_dpcm_and_format_r), FUNC(swp00_device::sample_dpcm_and_format_w));
 	rchan(map, 0x31).rw(FUNC(swp00_device::sample_address_r<2>), FUNC(swp00_device::sample_address_w<2>));
 	rchan(map, 0x32).rw(FUNC(swp00_device::sample_address_r<1>), FUNC(swp00_device::sample_address_w<1>));
 	rchan(map, 0x33).rw(FUNC(swp00_device::sample_address_r<0>), FUNC(swp00_device::sample_address_w<0>));
@@ -567,8 +571,8 @@ template<int sel> void swp00_device::lpf_info_w(offs_t offset, u8 data)
 	if(m_lpf_info[chan] == old)
 		return;
 
-	//	if(!sel)
-	//		logerror("lpf_info[%02x] = %04x\n", chan, m_lpf_info[chan]);
+	//  if(!sel)
+	//      logerror("lpf_info[%02x] = %04x\n", chan, m_lpf_info[chan]);
 
 	u32 fb = m_lpf_info[chan] >> 11;
 	u32 level = m_lpf_info[chan] & 0x7ff;
@@ -593,7 +597,7 @@ void swp00_device::lpf_speed_w(offs_t offset, u8 data)
 		return;
 	m_stream->update();
 	m_lpf_speed[chan] = data;
-	//	logerror("lpf_speed[%02x] = %02x\n", chan, m_lpf_speed[chan]);
+	//  logerror("lpf_speed[%02x] = %02x\n", chan, m_lpf_speed[chan]);
 }
 
 u8 swp00_device::lpf_speed_r(offs_t offset)
@@ -609,7 +613,7 @@ void swp00_device::lfo_famod_depth_w(offs_t offset, u8 data)
 		return;
 	m_stream->update();
 	m_lfo_famod_depth[chan] = data;
-	//	logerror("lfo_famod_depth[%02x] = %02x\n", chan, m_lfo_famod_depth[chan]);
+	//  logerror("lfo_famod_depth[%02x] = %02x\n", chan, m_lfo_famod_depth[chan]);
 }
 
 u8 swp00_device::lfo_famod_depth_r(offs_t offset)
@@ -625,7 +629,7 @@ void swp00_device::rev_level_w(offs_t offset, u8 data)
 		return;
 	m_stream->update();
 	m_rev_level[chan] = data;
-	//	logerror("rev_level[%02x] = %02x\n", chan, m_rev_level[chan]);
+	//  logerror("rev_level[%02x] = %02x\n", chan, m_rev_level[chan]);
 }
 
 u8 swp00_device::rev_level_r(offs_t offset)
@@ -641,7 +645,7 @@ void swp00_device::dry_level_w(offs_t offset, u8 data)
 		return;
 	m_stream->update();
 	m_dry_level[chan] = data;
-	//	logerror("dry_level[%02x] = %02x\n", chan, m_dry_level[chan]);
+	//  logerror("dry_level[%02x] = %02x\n", chan, m_dry_level[chan]);
 }
 
 u8 swp00_device::dry_level_r(offs_t offset)
@@ -657,7 +661,7 @@ void swp00_device::cho_level_w(offs_t offset, u8 data)
 		return;
 	m_stream->update();
 	m_cho_level[chan] = data;
-	//	logerror("cho_level[%02x] = %02x\n", chan, m_cho_level[chan]);
+	//  logerror("cho_level[%02x] = %02x\n", chan, m_cho_level[chan]);
 }
 
 u8 swp00_device::cho_level_r(offs_t offset)
@@ -673,7 +677,7 @@ void swp00_device::var_level_w(offs_t offset, u8 data)
 		return;
 	m_stream->update();
 	m_var_level[chan] = data;
-	//	logerror("var_level[%02x] = %02x\n", chan, m_var_level[chan]);
+	//  logerror("var_level[%02x] = %02x\n", chan, m_var_level[chan]);
 }
 
 u8 swp00_device::var_level_r(offs_t offset)
@@ -688,7 +692,7 @@ void swp00_device::glo_level_w(offs_t offset, u8 data)
 	if(m_glo_level[chan] == data)
 		return;
 	m_glo_level[chan] = data;
-	//	logerror("glo_level[%02x] = %02x\n", chan, m_glo_level[chan]);
+	//  logerror("glo_level[%02x] = %02x\n", chan, m_glo_level[chan]);
 }
 
 u8 swp00_device::glo_level_r(offs_t offset)
@@ -704,7 +708,7 @@ void swp00_device::panning_w(offs_t offset, u8 data)
 		return;
 	m_stream->update();
 	m_panning[chan] = data;
-	//	logerror("panning[%02x] = %02x\n", chan, m_panning[chan]);
+	//  logerror("panning[%02x] = %02x\n", chan, m_panning[chan]);
 }
 
 u8 swp00_device::panning_r(offs_t offset)
@@ -790,8 +794,8 @@ template<int sel> void swp00_device::pitch_w(offs_t offset, u8 data)
 	m_pitch[chan] = (m_pitch[chan] & ~(0xff << (8*sel))) | (data << (8*sel));
 	if(m_pitch[chan] == old)
 		return;
-	//	if(!sel)
-	//		logerror("pitch[%02x] = %04x\n", chan, m_pitch[chan]);
+	//  if(!sel)
+	//      logerror("pitch[%02x] = %04x\n", chan, m_pitch[chan]);
 }
 
 template<int sel> u8 swp00_device::pitch_r(offs_t offset)
@@ -806,8 +810,8 @@ template<int sel> void swp00_device::sample_start_w(offs_t offset, u8 data)
 	m_stream->update();
 
 	m_sample_start[chan] = (m_sample_start[chan] & ~(0xff << (8*sel))) | (data << (8*sel));
-	//	if(!sel)
-	//		logerror("sample_start[%02x] = %04x\n", chan, m_sample_start[chan]);
+	//  if(!sel)
+	//      logerror("sample_start[%02x] = %04x\n", chan, m_sample_start[chan]);
 }
 
 template<int sel> u8 swp00_device::sample_start_r(offs_t offset)
@@ -822,8 +826,8 @@ template<int sel> void swp00_device::sample_end_w(offs_t offset, u8 data)
 	m_stream->update();
 
 	m_sample_end[chan] = (m_sample_end[chan] & ~(0xff << (8*sel))) | (data << (8*sel));
-	//	if(!sel)
-	//		logerror("sample_end[%02x] = %04x\n", chan, m_sample_end[chan]);
+	//  if(!sel)
+	//      logerror("sample_end[%02x] = %04x\n", chan, m_sample_end[chan]);
 }
 
 template<int sel> u8 swp00_device::sample_end_r(offs_t offset)
@@ -832,19 +836,19 @@ template<int sel> u8 swp00_device::sample_end_r(offs_t offset)
 	return m_sample_end[chan] >> (8*sel);
 }
 
-void swp00_device::sample_dec_and_format_w(offs_t offset, u8 data)
+void swp00_device::sample_dpcm_and_format_w(offs_t offset, u8 data)
 {
 	int chan = offset >> 1;
 	m_stream->update();
 
-	m_sample_dec_and_format[chan] = data;
-	//	logerror("sample_dec_and_format[%02x] = %02x\n", chan, m_sample_dec_and_format[chan]);
+	m_sample_dpcm_and_format[chan] = data;
+	//  logerror("sample_dpcm_and_format[%02x] = %02x\n", chan, m_sample_dpcm_and_format[chan]);
 }
 
-u8 swp00_device::sample_dec_and_format_r(offs_t offset)
+u8 swp00_device::sample_dpcm_and_format_r(offs_t offset)
 {
 	int chan = offset >> 1;
-	return m_sample_dec_and_format[chan];
+	return m_sample_dpcm_and_format[chan];
 }
 
 template<int sel> void swp00_device::sample_address_w(offs_t offset, u8 data)
@@ -853,8 +857,8 @@ template<int sel> void swp00_device::sample_address_w(offs_t offset, u8 data)
 	m_stream->update();
 
 	m_sample_address[chan] = (m_sample_address[chan] & ~(0xff << (8*sel))) | (data << (8*sel));
-	//	if(!sel)
-	//		logerror("sample_address[%02x] = %04x\n", chan, m_sample_address[chan]);
+	//  if(!sel)
+	//      logerror("sample_address[%02x] = %04x\n", chan, m_sample_address[chan]);
 }
 
 template<int sel> u8 swp00_device::sample_address_r(offs_t offset)
@@ -871,7 +875,7 @@ void swp00_device::lfo_step_w(offs_t offset, u8 data)
 	m_stream->update();
 
 	m_lfo_step[chan] = data;
-	//	logerror("lfo_step[%02x] = %02x\n", chan, m_lfo_step[chan]);
+	//  logerror("lfo_step[%02x] = %02x\n", chan, m_lfo_step[chan]);
 }
 
 u8 swp00_device::lfo_step_r(offs_t offset)
@@ -888,7 +892,7 @@ void swp00_device::lfo_pmod_depth_w(offs_t offset, u8 data)
 	m_stream->update();
 
 	m_lfo_pmod_depth[chan] = data;
-	//	logerror("lfo_pmod_depth[%02x] = %02x\n", chan, m_lfo_pmod_depth[chan]);
+	//  logerror("lfo_pmod_depth[%02x] = %02x\n", chan, m_lfo_pmod_depth[chan]);
 }
 
 u8 swp00_device::lfo_pmod_depth_r(offs_t offset)
@@ -900,7 +904,7 @@ u8 swp00_device::lfo_pmod_depth_r(offs_t offset)
 void swp00_device::keyon(int chan)
 {
 	m_stream->update();
-	logerror("keyon %02x a=%02x/%02x d=%02x/%02x glo=%02x pan=%02x [%x %x %x %x]\n", chan, m_attack_speed[chan], m_attack_level[chan], m_decay_speed[chan], m_decay_level[chan], m_glo_level[chan], m_panning[chan], m_sample_start[chan], m_sample_end[chan], m_sample_address[chan], m_sample_dec_and_format[chan]);
+	logerror("keyon %02x a=%02x/%02x d=%02x/%02x glo=%02x pan=%02x [%x %x %x %x]\n", chan, m_attack_speed[chan], m_attack_level[chan], m_decay_speed[chan], m_decay_level[chan], m_glo_level[chan], m_panning[chan], m_sample_start[chan], m_sample_end[chan], m_sample_address[chan], m_sample_dpcm_and_format[chan]);
 	m_lfo_phase[chan] = 0;
 	m_sample_pos[chan] = -m_sample_start[chan] << 15;
 
@@ -911,6 +915,7 @@ void swp00_device::keyon(int chan)
 	m_dpcm_current[chan] = 0;
 	m_dpcm_next[chan] = 0;
 	m_dpcm_address[chan] = m_sample_address[chan] - m_sample_start[chan];
+	m_dpcm_sum[chan] = 0;
 
 	m_lpf_value[chan] = m_lpf_target_value[chan];
 	m_lpf_timer[chan] = 0x4000000;
@@ -1136,7 +1141,7 @@ template<size_t size> s32 swp00_device::delay_block<size>::rlfo(int offreg, u32 
 	s32 val0 = m_buffer[pos & (size - 1)];
 	s32 val1 = m_buffer[(pos + 1) & (size - 1)];
 
-	//	fprintf(stderr, "lfo %02x %x %x\n", offreg, val0, val1);
+	//  fprintf(stderr, "lfo %02x %x %x\n", offreg, val0, val1);
 	return s32((val1 * s64(lfo_i_frac) + val0 * s64(0x400000 - lfo_i_frac)) >> 22);
 }
 
@@ -1151,7 +1156,7 @@ template<size_t size> s32 swp00_device::delay_block<size>::rlfo2(int offreg, s32
 	s32 val0 = m_buffer[pos & (size - 1)];
 	s32 val1 = m_buffer[(pos + 1) & (size - 1)];
 
-	//	fprintf(stderr, "lfo %02x %x %x\n", offreg, val0, val1);
+	//  fprintf(stderr, "lfo %02x %x %x\n", offreg, val0, val1);
 	return s32((val1 * s64(lfo_i_frac) + val0 * s64(0x800 - lfo_i_frac)) >> 11);
 }
 
@@ -1277,7 +1282,7 @@ void swp00_device::sound_stream_update(sound_stream &stream, std::vector<read_st
 			s16 val0, val1;
 			u32 base_address = m_sample_address[chan];
 			s32 spos = m_sample_pos[chan] >> 15;
-			switch(m_sample_dec_and_format[chan] >> 6) {
+			switch(m_sample_dpcm_and_format[chan] >> 6) {
 			case 0: { // 16-bits linear
 				offs_t adr = base_address + (spos << 1);
 				val0 = read_word(adr);
@@ -1327,10 +1332,13 @@ void swp00_device::sound_stream_update(sound_stream &stream, std::vector<read_st
 				break;
 
 			case 3: { // 8-bits delta-pcm
+				u8 offset = dpcm_offset[m_sample_dpcm_and_format[chan] & 3];
+				u8 scale = (m_sample_dpcm_and_format[chan] >> 2) & 7;
 				u32 target_address = base_address + spos + 1;
 				while(m_dpcm_address[chan] <= target_address) {
 					m_dpcm_current[chan] = m_dpcm_next[chan];
-					s32 sample = m_dpcm_next[chan] + m_dpcm[read_byte(m_dpcm_address[chan])];
+					m_dpcm_sum[chan] += m_dpcm[read_byte(m_dpcm_address[chan])] - offset;
+					s32 sample = (m_dpcm_sum[chan] << scale) >> 3;
 					m_dpcm_address[chan] ++;
 					if(sample < -0x8000)
 						sample = -0x8000;
@@ -1374,20 +1382,22 @@ void swp00_device::sound_stream_update(sound_stream &stream, std::vector<read_st
 
 			u32 sample_increment = ((m_pitch[chan] & 0xfff) << (8 + (s16(m_pitch[chan]) >> 12))) >> 4;
 			m_sample_pos[chan] += (sample_increment * (0x800 + ((lfo_p_phase * m_lfo_pmod_depth[chan]) >> (m_lfo_step[chan] & 0x40 ? 18 : 19)))) >> 11;
+
 			if((m_sample_pos[chan] >> 15) >= m_sample_end[chan]) {
 				if(!m_sample_end[chan])
 					m_active[chan] = false;
 				else {
 					s32 prev = m_sample_pos[chan];
 					do
-						m_sample_pos[chan] -= (m_sample_end[chan] << 15) | ((m_sample_dec_and_format[chan] & 0x3f) << 9);
+						m_sample_pos[chan] -= m_sample_end[chan] << 15;
 					while((m_sample_pos[chan] >> 15) >= m_sample_end[chan]);
 					m_dpcm_address[chan] += (m_sample_pos[chan] >> 15) - (prev >> 15);
+					m_dpcm_sum[chan] = 0;
 				}
 			}
 
 			if(m_lpf_speed[chan] & 0x80)
-				m_lpf_done[chan] = istep(m_lpf_timer[chan], 0, m_global_step[m_lpf_speed[chan]] >> 1);
+				m_lpf_done[chan] = istep(m_lpf_timer[chan], 0, m_global_step[m_lpf_speed[chan] & 0x7f] >> 1);
 			else
 				m_lpf_done[chan] = istep(m_lpf_value[chan], m_lpf_target_value[chan], m_global_step[m_lpf_speed[chan]] >> 1);
 

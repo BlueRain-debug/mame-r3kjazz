@@ -155,22 +155,6 @@ if (SOUNDS["TIA"]~=null) then
 	}
 end
 
-
-
----------------------------------------------------
--- Amiga audio hardware
---@src/devices/machine/8364_paula.h,SOUNDS["PAULA_8364"] = true
----------------------------------------------------
-
-if (SOUNDS["PAULA_8364"]~=null) then
-	files {
-		MAME_DIR .. "src/devices/machine/8364_paula.cpp",
-		MAME_DIR .. "src/devices/machine/8364_paula.h",
-	}
-end
-
-
-
 ---------------------------------------------------
 -- Bally Astrocade sound system
 --@src/devices/sound/astrocde.h,SOUNDS["ASTROCADE"] = true
@@ -186,7 +170,6 @@ end
 
 
 ---------------------------------------------------
----------------------------------------------------
 -- AC97
 --@src/devices/sound/pic-ac97.h,SOUNDS["AC97"] = true
 ---------------------------------------------------
@@ -197,6 +180,10 @@ if (SOUNDS["AC97"]~=null) then
 		MAME_DIR .. "src/devices/sound/pci-ac97.h",
 	}
 end
+
+
+
+---------------------------------------------------
 -- CEM 3394 analog synthesizer chip
 --@src/devices/sound/cem3394.h,SOUNDS["CEM3394"] = true
 ---------------------------------------------------
@@ -205,6 +192,20 @@ if (SOUNDS["CEM3394"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/sound/cem3394.cpp",
 		MAME_DIR .. "src/devices/sound/cem3394.h",
+	}
+end
+
+
+
+---------------------------------------------------
+-- Creative Labs CT1745 SB16 Mixer
+--@src/devices/sound/ct1745.h,SOUNDS["CT1745"] = true
+---------------------------------------------------
+
+if (SOUNDS["CT1745"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/ct1745.cpp",
+		MAME_DIR .. "src/devices/sound/ct1745.h",
 	}
 end
 
@@ -236,20 +237,6 @@ if (SOUNDS["ES1373"]~=null) then
 end
 
 ---------------------------------------------------
--- Data East custom sound chips
---@src/devices/sound/bsmt2000.h,SOUNDS["BSMT2000"] = true
----------------------------------------------------
-
-if (SOUNDS["BSMT2000"]~=null) then
-	files {
-		MAME_DIR .. "src/devices/sound/bsmt2000.cpp",
-		MAME_DIR .. "src/devices/sound/bsmt2000.h",
-	}
-end
-
-
-
----------------------------------------------------
 -- Ensoniq 5503 (Apple IIgs)
 --@src/devices/sound/es5503.h,SOUNDS["ES5503"] = true
 ---------------------------------------------------
@@ -260,7 +247,6 @@ if (SOUNDS["ES5503"]~=null) then
 		MAME_DIR .. "src/devices/sound/es5503.h",
 	}
 end
-
 
 
 ---------------------------------------------------
@@ -287,6 +273,20 @@ if (SOUNDS["ESQPUMP"]~=null) then
 		MAME_DIR .. "src/devices/sound/esqpump.h",
 	}
 end
+
+
+---------------------------------------------------
+-- Data East custom sound chips
+--@src/devices/sound/bsmt2000.h,SOUNDS["BSMT2000"] = true
+---------------------------------------------------
+
+if (SOUNDS["BSMT2000"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/bsmt2000.cpp",
+		MAME_DIR .. "src/devices/sound/bsmt2000.h",
+	}
+end
+
 
 
 ---------------------------------------------------
@@ -551,6 +551,20 @@ end
 
 
 ---------------------------------------------------
+-- Micronas DAC 3550A Stereo Audio DAC
+--@src/devices/sound/dac3350a.h,SOUNDS["DAC3350A"] = true
+---------------------------------------------------
+
+if (SOUNDS["DAC3350A"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/dac3350a.cpp",
+		MAME_DIR .. "src/devices/sound/dac3350a.h",
+	}
+end
+
+
+
+---------------------------------------------------
 -- MEA8000 Voice Synthesizer
 --@src/devices/sound/mea8000.h,SOUNDS["MEA8000"] = true
 ---------------------------------------------------
@@ -686,17 +700,32 @@ end
 
 
 ---------------------------------------------------
+-- IMA ADPCM sample player
+--@src/devices/sound/imaadpcm.h,SOUNDS["IMAADPCM"] = true
+---------------------------------------------------
+
+if (SOUNDS["IMAADPCM"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/imaadpcm.cpp",
+		MAME_DIR .. "src/devices/sound/imaadpcm.h",
+	}
+end
+
+
+
+---------------------------------------------------
 -- OKI ADPCM sample players
 --@src/devices/sound/okim6258.h,SOUNDS["OKIM6258"] = true
 --@src/devices/sound/msm5205.h,SOUNDS["MSM5205"] = true
 --@src/devices/sound/msm5232.h,SOUNDS["MSM5232"] = true
 --@src/devices/sound/okim6376.h,SOUNDS["OKIM6376"] = true
 --@src/devices/sound/okim6295.h,SOUNDS["OKIM6295"] = true
+--@src/devices/sound/okim6588.h,SOUNDS["OKIM6588"] = true
 --@src/devices/sound/okim9810.h,SOUNDS["OKIM9810"] = true
 --@src/devices/sound/okiadpcm.h,SOUNDS["OKIADPCM"] = true
 ---------------------------------------------------
 
-if (SOUNDS["OKIM6258"]~=null or SOUNDS["OKIM6295"]~=null or SOUNDS["OKIM9810"]~=null or SOUNDS["I5000_SND"]~=null or SOUNDS["OKIADPCM"]~=null) then
+if (SOUNDS["OKIM6258"]~=null or SOUNDS["OKIM6295"]~=null or SOUNDS["OKIM6588"]~=null or SOUNDS["OKIM9810"]~=null or SOUNDS["I5000_SND"]~=null or SOUNDS["OKIADPCM"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/sound/okiadpcm.cpp",
 		MAME_DIR .. "src/devices/sound/okiadpcm.h",
@@ -735,6 +764,13 @@ if (SOUNDS["OKIM6258"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/sound/okim6258.cpp",
 		MAME_DIR .. "src/devices/sound/okim6258.h",
+	}
+end
+
+if (SOUNDS["OKIM6588"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/okim6588.cpp",
+		MAME_DIR .. "src/devices/sound/okim6588.h",
 	}
 end
 
@@ -969,6 +1005,19 @@ end
 
 
 ---------------------------------------------------
+-- ST-Techno custom sound chip
+--@src/devices/sound/stt_sa1.h,SOUNDS["STT_SA1"] = true
+---------------------------------------------------
+
+if (SOUNDS["STT_SA1"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/stt_sa1.cpp",
+		MAME_DIR .. "src/devices/sound/stt_sa1.h",
+	}
+end
+
+
+---------------------------------------------------
 -- S14001A speech synthesizer
 --@src/devices/sound/s14001a.h,SOUNDS["S14001A"] = true
 ---------------------------------------------------
@@ -1005,6 +1054,20 @@ if (SOUNDS["SN76496"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/sound/sn76496.cpp",
 		MAME_DIR .. "src/devices/sound/sn76496.h",
+	}
+end
+
+
+
+---------------------------------------------------
+-- Silicon Systems SSI-263A HLE
+--@src/devices/sound/ssi263hle.h,SOUNDS["SSI263HLE"] = true
+---------------------------------------------------
+
+if (SOUNDS["SSI263HLE"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/ssi263hle.cpp",
+		MAME_DIR .. "src/devices/sound/ssi263hle.h",
 	}
 end
 
@@ -1346,18 +1409,6 @@ if (SOUNDS["AD1848"]~=null) then
 end
 
 ---------------------------------------------------
--- UPD1771
---@src/devices/sound/upd1771.h,SOUNDS["UPD1771"] = true
----------------------------------------------------
-
-if (SOUNDS["UPD1771"]~=null) then
-	files {
-		MAME_DIR .. "src/devices/sound/upd1771.cpp",
-		MAME_DIR .. "src/devices/sound/upd1771.h",
-	}
-end
-
----------------------------------------------------
 -- GB_SOUND
 --@src/devices/sound/gb.h,SOUNDS["GB_SOUND"] = true
 ---------------------------------------------------
@@ -1401,18 +1452,6 @@ if (SOUNDS["MM5837"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/sound/mm5837.cpp",
 		MAME_DIR .. "src/devices/sound/mm5837.h",
-	}
-end
-
----------------------------------------------------
--- Intelligent Designs DAVE
---@src/devices/sound/dave.h,SOUNDS["DAVE"] = true
----------------------------------------------------
-
-if (SOUNDS["DAVE"]~=null) then
-	files {
-		MAME_DIR .. "src/devices/sound/dave.cpp",
-		MAME_DIR .. "src/devices/sound/dave.h",
 	}
 end
 
@@ -1461,6 +1500,18 @@ if (SOUNDS["LC82310"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/sound/lc82310.cpp",
 		MAME_DIR .. "src/devices/sound/lc82310.h",
+	}
+end
+
+---------------------------------------------------
+-- NEC uPD931
+--@src/devices/sound/upd931.h,SOUNDS["UPD931"] = true
+---------------------------------------------------
+
+if (SOUNDS["UPD931"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/upd931.cpp",
+		MAME_DIR .. "src/devices/sound/upd931.h",
 	}
 end
 
@@ -1526,6 +1577,18 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/sound/swx00.h,SOUNDS["SWX00"] = true
+---------------------------------------------------
+
+if (SOUNDS["SWX00"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/swx00.cpp",
+		MAME_DIR .. "src/devices/sound/swx00.h",
+	}
+end
+
+---------------------------------------------------
+--
 --@src/devices/sound/meg.h,SOUNDS["MEG"] = true
 ---------------------------------------------------
 
@@ -1549,14 +1612,26 @@ if (SOUNDS["XT446"]~=null) then
 end
 
 ---------------------------------------------------
--- Roland sample players
---@src/devices/sound/rolandpcm.h,SOUNDS["ROLANDPCM"] = true
+-- Roland GP-based sample players
+--@src/devices/sound/roland_gp.h,SOUNDS["ROLANDGP"] = true
 ---------------------------------------------------
 
-if (SOUNDS["ROLANDPCM"]~=null) then
+if (SOUNDS["ROLANDGP"]~=null) then
 	files {
-		MAME_DIR .. "src/devices/sound/rolandpcm.cpp",
-		MAME_DIR .. "src/devices/sound/rolandpcm.h",
+		MAME_DIR .. "src/devices/sound/roland_gp.cpp",
+		MAME_DIR .. "src/devices/sound/roland_gp.h",
+	}
+end
+
+---------------------------------------------------
+-- Roland LP-based sample players
+--@src/devices/sound/roland_lp.h,SOUNDS["ROLANDLP"] = true
+---------------------------------------------------
+
+if (SOUNDS["ROLANDLP"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/roland_lp.cpp",
+		MAME_DIR .. "src/devices/sound/roland_lp.h",
 	}
 end
 
@@ -1665,5 +1740,29 @@ if (SOUNDS["AP2010"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/sound/ap2010pcm.cpp",
 		MAME_DIR .. "src/devices/sound/ap2010pcm.h",
+	}
+end
+
+---------------------------------------------------
+-- Texas Instruments CF61909
+--@src/devices/sound/cf61909.h,SOUNDS["CF61909"] = true
+---------------------------------------------------
+
+if (SOUNDS["CF61909"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/cf61909.cpp",
+		MAME_DIR .. "src/devices/sound/cf61909.h",
+	}
+end
+
+---------------------------------------------------
+-- NEC uPD65043GF-U01
+--@src/devices/sound/upd65043gfu01.h,SOUNDS["UPD65043GFU01"] = true
+---------------------------------------------------
+
+if (SOUNDS["UPD65043GFU01"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/sound/upd65043gfu01.cpp",
+		MAME_DIR .. "src/devices/sound/upd65043gfu01.h",
 	}
 end

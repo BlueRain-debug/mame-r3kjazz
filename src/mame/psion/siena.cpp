@@ -9,7 +9,7 @@
 #include "emu.h"
 #include "machine/nvram.h"
 #include "machine/psion_asic9.h"
-//#include "machine/psion_condor.h"
+#include "machine/psion_condor.h"
 #include "machine/ram.h"
 #include "sound/spkrdev.h"
 #include "bus/psion/honda/slot.h"
@@ -34,7 +34,7 @@ public:
 		, m_palette(*this, "palette")
 		, m_keyboard(*this, "COL%u", 0U)
 		, m_speaker(*this, "speaker")
-		//, m_condor(*this, "condor")
+		, m_condor(*this, "condor")
 		, m_honda(*this, "honda")
 	{ }
 
@@ -43,8 +43,8 @@ public:
 	DECLARE_INPUT_CHANGED_MEMBER(wakeup);
 
 protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 private:
 	required_device<psion_asic9_device> m_asic9;
@@ -53,7 +53,7 @@ private:
 	required_device<palette_device> m_palette;
 	required_ioport_array<8> m_keyboard;
 	required_device<speaker_sound_device> m_speaker;
-	//required_device<psion_condor_device> m_condor;
+	required_device<psion_condor_device> m_condor;
 	required_device<psion_honda_slot_device> m_honda;
 
 	void palette_init(palette_device &palette);
@@ -71,7 +71,7 @@ void siena_state::machine_start()
 
 void siena_state::machine_reset()
 {
-	//m_asic9->io_space().install_readwrite_handler(0x0100, 0x011f, read8sm_delegate(*m_condor, FUNC(psion_condor_device::read)), write8sm_delegate(*m_condor, FUNC(psion_condor_device::write)), 0x00ff);
+	m_asic9->io_space().install_readwrite_handler(0x0100, 0x011f, read8sm_delegate(*m_condor, FUNC(psion_condor_device::read)), write8sm_delegate(*m_condor, FUNC(psion_condor_device::write)), 0x00ff);
 }
 
 
@@ -85,7 +85,7 @@ static INPUT_PORTS_START( siena )
 	PORT_BIT(0x020, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_2) PORT_CODE(KEYCODE_2_PAD) PORT_CHAR('2')                  PORT_NAME("2 MR")
 	PORT_BIT(0x040, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_1) PORT_CODE(KEYCODE_1_PAD) PORT_CHAR('1')                  PORT_NAME("1 Min")
 	PORT_BIT(0x080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_0) PORT_CODE(KEYCODE_0_PAD) PORT_CHAR('0')
-	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_HOME)                                                       PORT_NAME("On/CE")           PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
+	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_HOME)                                                       PORT_NAME("On/CE")           PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
 	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_UNKNOWN)
 
 	PORT_START("COL1")
@@ -97,8 +97,8 @@ static INPUT_PORTS_START( siena )
 	PORT_BIT(0x020, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_O)          PORT_CHAR('o')  PORT_CHAR('O') PORT_CHAR('(')
 	PORT_BIT(0x040, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_8) PORT_CODE(KEYCODE_8_PAD) PORT_CHAR('8')
 	PORT_BIT(0x080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_RCONTROL)   PORT_CHAR(UCHAR_SHIFT_2)                        PORT_NAME("Fn")
-	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_PGUP)                                                       PORT_NAME("IR Send")         PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
-	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F3)         PORT_CHAR(UCHAR_MAMEKEY(F3))                    PORT_NAME("Word")            PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
+	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_PGUP)                                                       PORT_NAME("IR Send")         PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
+	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F3)         PORT_CHAR(UCHAR_MAMEKEY(F3))                    PORT_NAME("Word")            PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
 
 	PORT_START("COL2")
 	PORT_BIT(0x001, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_E)          PORT_CHAR('e')  PORT_CHAR('E') PORT_CHAR(0xa3)
@@ -122,7 +122,7 @@ static INPUT_PORTS_START( siena )
 	PORT_BIT(0x040, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_EQUALS)     PORT_CHAR('=')                                  PORT_NAME("= %")
 	PORT_BIT(0x080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_LSHIFT)     PORT_CHAR(UCHAR_SHIFT_1)                        PORT_NAME("Shift (L)")
 	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_UNUSED)
-	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F5)         PORT_CHAR(UCHAR_MAMEKEY(F5))                    PORT_NAME("Time")            PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
+	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F5)         PORT_CHAR(UCHAR_MAMEKEY(F5))                    PORT_NAME("Time")            PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
 
 	PORT_START("COL4")
 	PORT_BIT(0x001, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_T)          PORT_CHAR('t')  PORT_CHAR('T') PORT_CHAR('%')
@@ -134,7 +134,7 @@ static INPUT_PORTS_START( siena )
 	PORT_BIT(0x040, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_PLUS_PAD)   PORT_CHAR('+')                                  PORT_NAME("+ M+")
 	PORT_BIT(0x080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_RSHIFT)     PORT_CHAR(UCHAR_SHIFT_1)                        PORT_NAME("Shift (R)")
 	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_UNUSED)
-	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F6)         PORT_CHAR(UCHAR_MAMEKEY(F6))                    PORT_NAME("World")           PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
+	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F6)         PORT_CHAR(UCHAR_MAMEKEY(F6))                    PORT_NAME("World")           PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
 
 	PORT_START("COL5")
 	PORT_BIT(0x001, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_Y)          PORT_CHAR('y')  PORT_CHAR('Y') PORT_CHAR('^')
@@ -145,8 +145,8 @@ static INPUT_PORTS_START( siena )
 	PORT_BIT(0x020, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_BACKSPACE)  PORT_CHAR(0x08)                                 PORT_NAME("Del")
 	PORT_BIT(0x040, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_ASTERISK)   PORT_CHAR('*')                                  PORT_NAME(u8"×")
 	PORT_BIT(0x080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_END)                                                        PORT_NAME("Off")
-	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F8)         PORT_CHAR(UCHAR_MAMEKEY(F8))                    PORT_NAME("Sheet")           PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
-	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F7)         PORT_CHAR(UCHAR_MAMEKEY(F7))                    PORT_NAME("Calc")            PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
+	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F8)         PORT_CHAR(UCHAR_MAMEKEY(F8))                    PORT_NAME("Sheet")           PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
+	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F7)         PORT_CHAR(UCHAR_MAMEKEY(F7))                    PORT_NAME("Calc")            PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
 
 	PORT_START("COL6")
 	PORT_BIT(0x001, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_Q)          PORT_CHAR('q')  PORT_CHAR('Q') PORT_CHAR('!')
@@ -157,8 +157,8 @@ static INPUT_PORTS_START( siena )
 	PORT_BIT(0x020, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_I)          PORT_CHAR('i')  PORT_CHAR('I') PORT_CHAR('*')
 	PORT_BIT(0x040, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_SLASH_PAD)  PORT_CHAR('/')                                  PORT_NAME(u8"÷")
 	PORT_BIT(0x080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_MINUS_PAD)  PORT_CHAR('-')                                  PORT_NAME("- M-")
-	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_ESC)        PORT_CHAR(UCHAR_MAMEKEY(ESC))                   PORT_NAME("Esc")             PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
-	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F2)         PORT_CHAR(UCHAR_MAMEKEY(F2))                    PORT_NAME("Data")            PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
+	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_ESC)        PORT_CHAR(UCHAR_MAMEKEY(ESC))                   PORT_NAME("Esc")             PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
+	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F2)         PORT_CHAR(UCHAR_MAMEKEY(F2))                    PORT_NAME("Data")            PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
 
 	PORT_START("COL7")
 	PORT_BIT(0x001, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_TAB)        PORT_CHAR(0x09)                                 PORT_NAME("Tab")
@@ -170,7 +170,7 @@ static INPUT_PORTS_START( siena )
 	PORT_BIT(0x040, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_DEL_PAD)    PORT_CHAR('.')                                  PORT_NAME(". +/-")
 	PORT_BIT(0x080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_LCONTROL)   PORT_CHAR(UCHAR_MAMEKEY(LCONTROL))              PORT_NAME("Control")
 	PORT_BIT(0x100, IP_ACTIVE_HIGH, IPT_UNUSED)
-	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F1)         PORT_CHAR(UCHAR_MAMEKEY(F1))                    PORT_NAME("System")          PORT_CHANGED_MEMBER(DEVICE_SELF, siena_state, wakeup, 0)
+	PORT_BIT(0x200, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_F1)         PORT_CHAR(UCHAR_MAMEKEY(F1))                    PORT_NAME("System")          PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(siena_state::wakeup), 0)
 INPUT_PORTS_END
 
 
@@ -225,18 +225,18 @@ void siena_state::siena(machine_config &config)
 	RAM(config, m_ram).set_default_size("512K").set_extra_options("1M");
 	NVRAM(config, "nvram", nvram_device::DEFAULT_NONE);
 
-	//PSION_CONDOR(config, m_condor);
-	//m_condor->txd_handler().set(m_honda, FUNC(psion_honda_slot_device::write_txd));
-	//m_condor->rts_handler().set(m_honda, FUNC(psion_honda_slot_device::write_rts));
-	//m_condor->dtr_handler().set(m_honda, FUNC(psion_honda_slot_device::write_dtr));
-	//m_condor->int_handler().set(m_asic9, FUNC(psion_asic9_device::eint1_w));
+	PSION_CONDOR(config, m_condor);
+	m_condor->txd_handler().set(m_honda, FUNC(psion_honda_slot_device::write_txd));
+	m_condor->rts_handler().set(m_honda, FUNC(psion_honda_slot_device::write_rts));
+	m_condor->dtr_handler().set(m_honda, FUNC(psion_honda_slot_device::write_dtr));
+	m_condor->int_handler().set(m_asic9, FUNC(psion_asic9_device::eint1_w));
 
 	// Honda expansion port
 	PSION_HONDA_SLOT(config, m_honda, psion_honda_devices, "ssd");
-	//m_honda->rxd_handler().set(m_condor, FUNC(psion_condor_device::write_rxd));
-	//m_honda->dcd_handler().set(m_condor, FUNC(psion_condor_device::write_dcd));
-	//m_honda->dsr_handler().set(m_condor, FUNC(psion_condor_device::write_dsr));
-	//m_honda->cts_handler().set(m_condor, FUNC(psion_condor_device::write_cts));
+	m_honda->rxd_handler().set(m_condor, FUNC(psion_condor_device::write_rxd));
+	m_honda->dcd_handler().set(m_condor, FUNC(psion_condor_device::write_dcd));
+	m_honda->dsr_handler().set(m_condor, FUNC(psion_condor_device::write_dsr));
+	m_honda->cts_handler().set(m_condor, FUNC(psion_condor_device::write_cts));
 	m_honda->sdoe_handler().set(m_asic9, FUNC(psion_asic9_device::medchng_w));
 	m_asic9->data_r<4>().set(m_honda, FUNC(psion_honda_slot_device::data_r));
 	m_asic9->data_w<4>().set(m_honda, FUNC(psion_honda_slot_device::data_w));
@@ -255,4 +255,4 @@ ROM_END
 
 
 //    YEAR  NAME      PARENT  COMPAT  MACHINE   INPUT    CLASS          INIT         COMPANY   FULLNAME        FLAGS
-COMP( 1996, siena,    0,      0,      siena,    siena,   siena_state,   empty_init,  "Psion",  "Siena",        0 )
+COMP( 1996, siena,    0,      0,      siena,    siena,   siena_state,   empty_init,  "Psion",  "Siena",        MACHINE_SUPPORTS_SAVE )

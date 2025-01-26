@@ -414,7 +414,7 @@ void seawolf_state::periscope_lamp_w(u8 data)
 }
 
 
-CUSTOM_INPUT_MEMBER(seawolf_state::erase_input_r)
+ioport_value seawolf_state::erase_input_r()
 {
 	return m_erase_sw->read() & m_erase_dip->read();
 }
@@ -472,7 +472,7 @@ static INPUT_PORTS_START( seawolf )
 	PORT_DIPSETTING(    0x00, DEF_STR( 1C_1C ) )
 	PORT_DIPSETTING(    0x0c, DEF_STR( 2C_3C ) )
 	PORT_DIPSETTING(    0x08, DEF_STR( 1C_2C ) )
-	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(seawolf_state, erase_input_r)
+	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(seawolf_state::erase_input_r))
 	PORT_DIPNAME( 0xe0, 0x60, "Extended Time At" ) PORT_DIPLOCATION("G4:6,7,8")
 	PORT_DIPSETTING(    0x00, DEF_STR( None ) )
 	PORT_DIPSETTING(    0x20, "2000" )
@@ -654,13 +654,13 @@ uint8_t mw8080bw_state::tornbase_get_cabinet_type()
 }
 
 
-CUSTOM_INPUT_MEMBER(mw8080bw_state::tornbase_hit_left_input_r)
+ioport_value mw8080bw_state::tornbase_hit_left_input_r()
 {
 	return ioport(TORNBASE_L_HIT_PORT_TAG)->read();
 }
 
 
-CUSTOM_INPUT_MEMBER(mw8080bw_state::tornbase_hit_right_input_r)
+ioport_value mw8080bw_state::tornbase_hit_right_input_r()
 {
 	uint32_t ret;
 
@@ -681,7 +681,7 @@ CUSTOM_INPUT_MEMBER(mw8080bw_state::tornbase_hit_right_input_r)
 }
 
 
-CUSTOM_INPUT_MEMBER(mw8080bw_state::tornbase_pitch_left_input_r)
+ioport_value mw8080bw_state::tornbase_pitch_left_input_r()
 {
 	uint32_t ret;
 
@@ -702,13 +702,13 @@ CUSTOM_INPUT_MEMBER(mw8080bw_state::tornbase_pitch_left_input_r)
 }
 
 
-CUSTOM_INPUT_MEMBER(mw8080bw_state::tornbase_pitch_right_input_r)
+ioport_value mw8080bw_state::tornbase_pitch_right_input_r()
 {
 	return ioport(TORNBASE_L_PITCH_PORT_TAG)->read();
 }
 
 
-CUSTOM_INPUT_MEMBER(mw8080bw_state::tornbase_score_input_r)
+ioport_value mw8080bw_state::tornbase_score_input_r()
 {
 	return ioport(TORNBASE_SCORE_SW_PORT_TAG)->read() &
 			ioport(TORNBASE_SCORE_DIP_PORT_TAG)->read();
@@ -743,21 +743,21 @@ void mw8080bw_state::tornbase_io_map(address_map &map)
 
 static INPUT_PORTS_START( tornbase )
 	PORT_START("IN0")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(mw8080bw_state, tornbase_hit_left_input_r)
-	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(mw8080bw_state, tornbase_pitch_left_input_r)
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(mw8080bw_state::tornbase_hit_left_input_r))
+	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(mw8080bw_state::tornbase_pitch_left_input_r))
 	PORT_DIPNAME( 0x80, 0x00, DEF_STR( Unused ) ) PORT_CONDITION("IN2", 0x80, EQUALS, 0x00) PORT_DIPLOCATION("B1:7")
 	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x80, DEF_STR( On ) )
 
 	PORT_START("IN1")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(mw8080bw_state, tornbase_hit_right_input_r)
-	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(mw8080bw_state, tornbase_pitch_right_input_r)
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(mw8080bw_state::tornbase_hit_right_input_r))
+	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(mw8080bw_state::tornbase_pitch_right_input_r))
 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_UNUSED)  /* not connected */
 
 	PORT_START("IN2")
 	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_COIN1 )
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_UNKNOWN )  /* schematics shows it as "START", but not used by the software */
-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(mw8080bw_state, tornbase_score_input_r)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(mw8080bw_state::tornbase_score_input_r))
 	PORT_DIPNAME( 0x78, 0x40, DEF_STR( Coinage ) ) PORT_CONDITION("IN2", 0x80, EQUALS, 0x00) PORT_DIPLOCATION("B1:2,3,4,5")
 	PORT_DIPSETTING(    0x18, "4 Coins/1 Inning" )
 	PORT_DIPSETTING(    0x10, "3 Coins/1 Inning" )
@@ -1303,13 +1303,13 @@ void desertgu_state::machine_start()
 }
 
 
-CUSTOM_INPUT_MEMBER(desertgu_state::gun_input_r)
+ioport_value desertgu_state::gun_input_r()
 {
 	return m_gun_port[m_controller_select]->read();
 }
 
 
-CUSTOM_INPUT_MEMBER(desertgu_state::dip_sw_0_1_r)
+ioport_value desertgu_state::dip_sw_0_1_r()
 {
 	return m_dip_sw_0_1[m_controller_select]->read();
 }
@@ -1335,10 +1335,10 @@ void desertgu_state::io_map(address_map &map)
 
 static INPUT_PORTS_START( desertgu )
 	PORT_START("IN0")
-	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(desertgu_state, gun_input_r)
+	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(desertgu_state::gun_input_r))
 
 	PORT_START("IN1")
-	PORT_BIT( 0x03, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(desertgu_state, dip_sw_0_1_r)
+	PORT_BIT( 0x03, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(desertgu_state::dip_sw_0_1_r))
 	PORT_DIPNAME( 0x0c, 0x00, DEF_STR( Language ) ) PORT_CONDITION("IN1", 0x30, NOTEQUALS, 0x30) PORT_DIPLOCATION("C2:5,6")
 	PORT_DIPSETTING(    0x00, DEF_STR( English ) )
 	PORT_DIPSETTING(    0x04, DEF_STR( German ) )
@@ -1413,7 +1413,7 @@ void desertgu_state::desertgu(machine_config &config)
 #define DPLAY_CAB_TYPE_COCKTAIL     (1)
 
 
-CUSTOM_INPUT_MEMBER(dplay_state::dplay_pitch_left_input_r)
+ioport_value dplay_state::dplay_pitch_left_input_r()
 {
 	uint32_t ret;
 
@@ -1426,7 +1426,7 @@ CUSTOM_INPUT_MEMBER(dplay_state::dplay_pitch_left_input_r)
 }
 
 
-CUSTOM_INPUT_MEMBER(dplay_state::dplay_pitch_right_input_r)
+ioport_value dplay_state::dplay_pitch_right_input_r()
 {
 	return m_l_pitch->read();
 }
@@ -1452,12 +1452,12 @@ void dplay_state::io_map(address_map &map)
 static INPUT_PORTS_START( dplay )
 	PORT_START("IN0")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_NAME("P1 Hit") PORT_PLAYER(1)
-	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(dplay_state, dplay_pitch_left_input_r)
+	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(dplay_state::dplay_pitch_left_input_r))
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_START1 )
 
 	PORT_START("IN1")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_NAME("P2 Hit") PORT_PLAYER(2)
-	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(dplay_state, dplay_pitch_right_input_r)
+	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(dplay_state::dplay_pitch_right_input_r))
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_START2 )
 
 	PORT_START("IN2")
@@ -1513,12 +1513,12 @@ INPUT_PORTS_END
 static INPUT_PORTS_START( einning )
 	PORT_START("IN0")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_NAME("P1 Hit") PORT_PLAYER(1)
-	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(dplay_state, dplay_pitch_left_input_r)
+	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(dplay_state::dplay_pitch_left_input_r))
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_START1 )
 
 	PORT_START("IN1")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_NAME("P2 Hit") PORT_PLAYER(2)
-	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(dplay_state, dplay_pitch_right_input_r)
+	PORT_BIT( 0x7e, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(dplay_state::dplay_pitch_right_input_r))
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_START2 )
 
 	PORT_START("IN2")
@@ -1779,7 +1779,7 @@ void clowns_state::machine_start()
 }
 
 
-CUSTOM_INPUT_MEMBER(clowns_state::controller_r)
+ioport_value clowns_state::controller_r()
 {
 	return m_controllers[m_controller_select]->read();
 }
@@ -1805,7 +1805,7 @@ void clowns_state::clowns_io_map(address_map &map)
 
 static INPUT_PORTS_START( clowns )
 	PORT_START("IN0")
-	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(clowns_state, controller_r)
+	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(clowns_state::controller_r))
 
 	PORT_START("IN1")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNUSED )  // not connected
@@ -1851,7 +1851,7 @@ INPUT_PORTS_END
 
 static INPUT_PORTS_START( clowns1 )
 	PORT_START("IN0")
-	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(clowns_state, controller_r)
+	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(clowns_state::controller_r))
 
 	PORT_START("IN1")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -1937,7 +1937,7 @@ void clowns_state::spacwalk_io_map(address_map &map)
 
 static INPUT_PORTS_START( spacwalk )
 	PORT_START("IN0")
-	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(clowns_state, controller_r)
+	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(clowns_state::controller_r))
 
 	PORT_START("IN1")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_UNUSED )
@@ -2572,7 +2572,7 @@ void invaders_state::machine_start()
 
 
 
-CUSTOM_INPUT_MEMBER(invaders_state::invaders_sw6_sw7_r)
+ioport_value invaders_state::invaders_sw6_sw7_r()
 {
 	// upright PCB : switches visible
 	// cocktail PCB: HI
@@ -2584,7 +2584,7 @@ CUSTOM_INPUT_MEMBER(invaders_state::invaders_sw6_sw7_r)
 }
 
 
-CUSTOM_INPUT_MEMBER(invaders_state::invaders_sw5_r)
+ioport_value invaders_state::invaders_sw5_r()
 {
 	// upright PCB : switch visible
 	// cocktail PCB: HI
@@ -2596,7 +2596,7 @@ CUSTOM_INPUT_MEMBER(invaders_state::invaders_sw5_r)
 }
 
 
-CUSTOM_INPUT_MEMBER(invaders_state::invaders_in0_control_r)
+ioport_value invaders_state::invaders_in0_control_r()
 {
 	// upright PCB : P1 controls
 	// cocktail PCB: HI
@@ -2608,13 +2608,13 @@ CUSTOM_INPUT_MEMBER(invaders_state::invaders_in0_control_r)
 }
 
 
-CUSTOM_INPUT_MEMBER(invaders_state::invaders_in1_control_r)
+ioport_value invaders_state::invaders_in1_control_r()
 {
 	return m_player_controls[0]->read();
 }
 
 
-CUSTOM_INPUT_MEMBER(invaders_state::invaders_in2_control_r)
+ioport_value invaders_state::invaders_in2_control_r()
 {
 	// upright PCB : P1 controls
 	// cocktail PCB: P2 controls
@@ -2650,17 +2650,17 @@ static INPUT_PORTS_START( invaders )
 	PORT_DIPNAME( 0x01, 0x00, DEF_STR( Unknown ) ) PORT_DIPLOCATION("SW:8")
 	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x01, DEF_STR( On ) )
-	PORT_BIT( 0x06, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(invaders_state, invaders_sw6_sw7_r)
+	PORT_BIT( 0x06, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_sw6_sw7_r))
 	PORT_BIT( 0x08, IP_ACTIVE_LOW,  IPT_UNUSED )
-	PORT_BIT( 0x70, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(invaders_state, invaders_in0_control_r)
-	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(invaders_state, invaders_sw5_r)
+	PORT_BIT( 0x70, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_in0_control_r))
+	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_sw5_r))
 
 	PORT_START("IN1")
-	PORT_BIT( 0x01, IP_ACTIVE_LOW,  IPT_COIN1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, invaders_state, direct_coin_count, 0)
+	PORT_BIT( 0x01, IP_ACTIVE_LOW,  IPT_COIN1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(invaders_state::direct_coin_count), 0)
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_START2 )
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_START1 )
 	PORT_BIT( 0x08, IP_ACTIVE_LOW,  IPT_UNUSED )
-	PORT_BIT( 0x70, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(invaders_state, invaders_in1_control_r)
+	PORT_BIT( 0x70, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_in1_control_r))
 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_UNUSED )
 
 	PORT_START("IN2")
@@ -2673,7 +2673,7 @@ static INPUT_PORTS_START( invaders )
 	PORT_DIPNAME( 0x08, 0x00, DEF_STR( Bonus_Life ) ) PORT_DIPLOCATION("SW:2")
 	PORT_DIPSETTING(    0x08, "1000" )
 	PORT_DIPSETTING(    0x00, "1500" )
-	PORT_BIT( 0x70, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(invaders_state, invaders_in2_control_r)
+	PORT_BIT( 0x70, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(invaders_state::invaders_in2_control_r))
 	PORT_DIPNAME( 0x80, 0x00, "Display Coinage" ) PORT_DIPLOCATION("SW:1")
 	PORT_DIPSETTING(    0x80, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
@@ -2739,7 +2739,7 @@ void invaders_state::invaders(machine_config &config)
 #define BLUESHRK_COIN_INPUT_PORT_TAG    ("COIN")
 
 
-CUSTOM_INPUT_MEMBER(mw8080bw_state::blueshrk_coin_input_r)
+ioport_value mw8080bw_state::blueshrk_coin_input_r()
 {
 	uint32_t ret = ioport(BLUESHRK_COIN_INPUT_PORT_TAG)->read();
 
@@ -2771,7 +2771,7 @@ static INPUT_PORTS_START( blueshrk )
 
 	PORT_START("IN1")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_PLAYER(1)
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(mw8080bw_state, blueshrk_coin_input_r)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(mw8080bw_state::blueshrk_coin_input_r))
 	PORT_DIPNAME( 0x04, 0x04, DEF_STR( Unused ) ) PORT_CONDITION("IN1", 0x80, EQUALS, 0x80) PORT_DIPLOCATION("SW:3")
 	PORT_DIPSETTING(    0x04, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
@@ -2847,7 +2847,7 @@ static INPUT_PORTS_START( invad2ct )
 	PORT_BIT( 0x80, IP_ACTIVE_LOW,  IPT_UNUSED )
 
 	PORT_START("IN1")
-	PORT_BIT( 0x01, IP_ACTIVE_LOW,  IPT_COIN1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, mw8080bw_state, direct_coin_count, 0)
+	PORT_BIT( 0x01, IP_ACTIVE_LOW,  IPT_COIN1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(mw8080bw_state::direct_coin_count), 0)
 	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_START2 )
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_START1 )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_UNUSED )
@@ -2917,6 +2917,12 @@ ROM_START( seawolfo )
 	ROM_LOAD( "6.c1",   0x0a00, 0x0200, CRC(e2ffe499) SHA1(4e62aa14c510504872e76eacc298912d60b2e6fe) )
 	ROM_LOAD( "7.b1",   0x0c00, 0x0200, CRC(d40a52b5) SHA1(ffa7bb9109248be748f92f173d22b9a8bed3875f) )
 	ROM_LOAD( "8.a1",   0x0e00, 0x0200, CRC(da61df76) SHA1(49cae7772c0ee99aaba3a5d0981f970c85755872) )
+ROM_END
+
+ROM_START( seawolfa ) // PCB 80-900d
+	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_LOAD( "9316b-2863_9316b-h-sw.h1", 0x0000, 0x0800, CRC(e542c042) SHA1(98f4fc9a8c9e14e495fd4628ccd5ca631c575cd3) )
+	ROM_LOAD( "9316b-2801_9316b-g-sw.g1", 0x0800, 0x0800, CRC(4c41a1d1) SHA1(673f28da9bdab2a56bdf18b40b69c4a16b6d0e48) )
 ROM_END
 
 ROM_START( gunfight )
@@ -3102,14 +3108,14 @@ ROM_END
 
 ROM_START( spcenctr )
 	ROM_REGION( 0x10000, "maincpu", 0 )
-	ROM_LOAD( "m645h-4m33.h1", 0x0000, 0x0800, CRC(7458b2db) SHA1(c4f41efb8a35fd8bebc75bff0111476affe2b34d) )
-	ROM_LOAD( "m645g-4m32.g1", 0x0800, 0x0800, CRC(1b873788) SHA1(6cdf0d602a65c7efcf8abe149c6172b4c7ab87a1) )
-	ROM_LOAD( "m645f-4m31.f1", 0x1000, 0x0800, CRC(d4319c91) SHA1(30830595c220f490fe150ad018fbf4671bb71e02) )
-	ROM_LOAD( "m645e-4m30.e1", 0x1800, 0x0800, CRC(9b9a1a45) SHA1(8023a05c13e8b541f9e2fe4d389e6a2dcd4766ea) )
-	ROM_LOAD( "m645d-4m29.d1", 0x4000, 0x0800, CRC(294d52ce) SHA1(0ee63413c5caf60d45ae8bef08f6c07099d30f79) )
-	ROM_LOAD( "m645c-4m28.c1", 0x4800, 0x0800, CRC(ce44c923) SHA1(9d35908de3194c5fe6fc8495ae413fa722018744) )
-	ROM_LOAD( "m645b-4m27.b1", 0x5000, 0x0800, CRC(098070ab) SHA1(72ae344591df0174353dc2e3d22daf5a70e2261f) )
-	ROM_LOAD( "m645a-4m26.a1", 0x5800, 0x0800, CRC(7f1d1f44) SHA1(2f4951171a55e7ac072742fa24eceeee6aca7e39) )
+	ROM_LOAD( "9316b-4m33_m645h-09s0.h1", 0x0000, 0x0800, CRC(7458b2db) SHA1(c4f41efb8a35fd8bebc75bff0111476affe2b34d) )
+	ROM_LOAD( "9316b-4m32_m645g-09s0.g1", 0x0800, 0x0800, CRC(1b873788) SHA1(6cdf0d602a65c7efcf8abe149c6172b4c7ab87a1) )
+	ROM_LOAD( "9316b-4m31_m645f-09s0.f1", 0x1000, 0x0800, CRC(d4319c91) SHA1(30830595c220f490fe150ad018fbf4671bb71e02) )
+	ROM_LOAD( "9316b-4m30_m645e-09s0.e1", 0x1800, 0x0800, CRC(9b9a1a45) SHA1(8023a05c13e8b541f9e2fe4d389e6a2dcd4766ea) )
+	ROM_LOAD( "9316b-4m29_m645d-09s0.d1", 0x4000, 0x0800, CRC(294d52ce) SHA1(0ee63413c5caf60d45ae8bef08f6c07099d30f79) )
+	ROM_LOAD( "9316b-4m28_m645c-09s0.c1", 0x4800, 0x0800, CRC(ce44c923) SHA1(9d35908de3194c5fe6fc8495ae413fa722018744) )
+	ROM_LOAD( "9316b-4m27_m645b-09s0.b1", 0x5000, 0x0800, CRC(098070ab) SHA1(72ae344591df0174353dc2e3d22daf5a70e2261f) )
+	ROM_LOAD( "9316b-4m26_m645a-09s0.a1", 0x5800, 0x0800, CRC(7f1d1f44) SHA1(2f4951171a55e7ac072742fa24eceeee6aca7e39) )
 ROM_END
 
 
@@ -3137,10 +3143,10 @@ ROM_END
 
 ROM_START( invaders )
 	ROM_REGION( 0x10000, "maincpu", 0 )
-	ROM_LOAD( "invaders.h", 0x0000, 0x0800, CRC(734f5ad8) SHA1(ff6200af4c9110d8181249cbcef1a8a40fa40b7f) )
-	ROM_LOAD( "invaders.g", 0x0800, 0x0800, CRC(6bfaca4a) SHA1(16f48649b531bdef8c2d1446c429b5f414524350) )
-	ROM_LOAD( "invaders.f", 0x1000, 0x0800, CRC(0ccead96) SHA1(537aef03468f63c5b9e11dd61e253f7ae17d9743) )
-	ROM_LOAD( "invaders.e", 0x1800, 0x0800, CRC(14e538b0) SHA1(1d6ca0c99f9df71e2990b610deb9d7da0125e2d8) )
+	ROM_LOAD( "9316b-0869_m739h.h1", 0x0000, 0x0800, CRC(734f5ad8) SHA1(ff6200af4c9110d8181249cbcef1a8a40fa40b7f) )
+	ROM_LOAD( "9316b-0856_m739g.g1", 0x0800, 0x0800, CRC(6bfaca4a) SHA1(16f48649b531bdef8c2d1446c429b5f414524350) )
+	ROM_LOAD( "9316b-0855_m739f.f1", 0x1000, 0x0800, CRC(0ccead96) SHA1(537aef03468f63c5b9e11dd61e253f7ae17d9743) )
+	ROM_LOAD( "9316b-0854_m739e.e1", 0x1800, 0x0800, CRC(14e538b0) SHA1(1d6ca0c99f9df71e2990b610deb9d7da0125e2d8) )
 ROM_END
 
 
@@ -3227,6 +3233,7 @@ ROM_END
 
 /* 596 */ GAMEL( 1976, seawolf,    0,        seawolf,  seawolf,  seawolf_state,  empty_init, ROT0,   "Dave Nutting Associates / Midway", "Sea Wolf (set 1)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_seawolf )
 /* 596 */ GAMEL( 1976, seawolfo,   seawolf,  seawolf,  seawolf,  seawolf_state,  empty_init, ROT0,   "Dave Nutting Associates / Midway", "Sea Wolf (set 2)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_seawolf )
+/* 596 */ GAMEL( 1976, seawolfa,   seawolf,  seawolf,  seawolf,  seawolf_state,  empty_init, ROT0,   "Dave Nutting Associates / Midway", "Sea Wolf (set 3)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_seawolf )
 /* 597 */ GAMEL( 1975, gunfight,   0,        gunfight, gunfight, gunfight_state, empty_init, ROT0,   "Dave Nutting Associates / Midway", "Gun Fight (set 1)", MACHINE_SUPPORTS_SAVE, layout_gunfight )
 /* 597 */ GAMEL( 1975, gunfighto,  gunfight, gunfight, gunfight, gunfight_state, empty_init, ROT0,   "Dave Nutting Associates / Midway", "Gun Fight (set 2)", MACHINE_SUPPORTS_SAVE, layout_gunfight )
 /* 604 Gun Fight (cocktail, dump does not exist) */

@@ -16,9 +16,9 @@
 #include "screen.h"
 
 #include "util/unicode.h"
-#include "util/utf8.h"
 
 #include <locale>
+#include <sstream>
 
 
 namespace ui {
@@ -112,8 +112,8 @@ void menu_device_config::populate_text(std::optional<text_layout> &layout, float
 				layout->add_text(
 						util::string_format(
 							(count > 1)
-								? ((clock != 0) ? "  %1$d" UTF8_MULTIPLY "%2$s %3$s" UTF8_NBSP "%4$s\n" : "  %1$d" UTF8_MULTIPLY "%2$s\n")
-								: ((clock != 0) ? "  %2$s %3$s" UTF8_NBSP "%4$s\n" : "  %2$s\n"),
+								? ((clock != 0) ? u8"  %1$d×%2$s %3$s\u00a0%4$s\n" : u8"  %1$d×%2$s\n")
+								: ((clock != 0) ? u8"  %2$s %3$s\u00a0%4$s\n" : "  %2$s\n"),
 							count, name, hz,
 							(d == 9) ? _("GHz") : (d == 6) ? _("MHz") : (d == 3) ? _("kHz") : _("Hz")),
 						color);
@@ -148,8 +148,8 @@ void menu_device_config::populate_text(std::optional<text_layout> &layout, float
 					layout->add_text(
 							util::string_format(
 								(screen.orientation() & ORIENTATION_SWAP_XY)
-									? _("  Screen '%1$s': %2$d \xC3\x97 %3$d (V) %4$s\xC2\xA0Hz\n")
-									: _("  Screen '%1$s': %2$d \xC3\x97 %3$d (H) %4$s\xC2\xA0Hz\n"),
+									? _(u8"  Screen '%1$s': %2$d × %3$d (V) %4$s\u00a0Hz\n")
+									: _(u8"  Screen '%1$s': %2$d × %3$d (H) %4$s\u00a0Hz\n"),
 								screen.tag(),
 								visarea.width(),
 								visarea.height(),
@@ -194,8 +194,8 @@ void menu_device_config::populate_text(std::optional<text_layout> &layout, float
 				layout->add_text(
 						util::string_format(
 							(count > 1)
-								? ((clock != 0) ? "  %1$d" UTF8_MULTIPLY "%2$s %3$s" UTF8_NBSP "%4$s\n" : "  %1$d" UTF8_MULTIPLY "%2$s\n")
-								: ((clock != 0) ? "  %2$s %3$s" UTF8_NBSP "%4$s\n" : "  %2$s\n"),
+								? ((clock != 0) ? u8"  %1$d×%2$s %3$s\u00a0%4$s\n" : u8"  %1$d×%2$s\n")
+								: ((clock != 0) ? u8"  %2$s %3$s\u00a0%4$s\n" : "  %2$s\n"),
 							count, sound.device().name(), hz,
 							(d == 9) ? _("GHz") : (d == 6) ? _("MHz") : (d == 3) ? _("kHz") : _("Hz")),
 						color);
@@ -236,11 +236,13 @@ void menu_device_config::populate_text(std::optional<text_layout> &layout, float
 
 		int input = 0, input_mj = 0, input_hana = 0, input_gamble = 0, input_analog = 0, input_adjust = 0;
 		int input_keypad = 0, input_keyboard = 0, dips = 0, confs = 0;
-		std::string errors;
 		std::ostringstream dips_opt, confs_opt;
 		ioport_list portlist;
-		for (device_t &iptdev : device_enumerator(*dev))
-			portlist.append(iptdev, errors);
+		{
+			std::ostringstream errors;
+			for (device_t &iptdev : device_enumerator(*dev))
+				portlist.append(iptdev, errors);
+		}
 
 		// check if the device adds inputs to the system
 		for (auto &port : portlist)
@@ -367,14 +369,6 @@ void menu_device_config::populate_text(std::optional<text_layout> &layout, float
 
 void menu_device_config::populate()
 {
-}
-
-bool menu_device_config::handle(event const *ev)
-{
-	if (ev)
-		return handle_key(ev->iptkey);
-	else
-		return false;
 }
 
 } // namespace ui

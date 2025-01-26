@@ -5,8 +5,8 @@
 //
 // Audio dsp dedicated to effects generation, part of the SWP20 lineup
 
-#ifndef DEVICES_SOUND_MEG_H
-#define DEVICES_SOUND_MEG_H
+#ifndef MAME_SOUND_MEG_H
+#define MAME_SOUND_MEG_H
 
 #pragma once
 
@@ -14,11 +14,11 @@ class meg_device : public device_t
 {
 public:
 	meg_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock = 44100*256);
-	void map(address_map &map);
+	void map(address_map &map) ATTR_COLD;
 
 protected:
-	virtual void device_start() override;
-	virtual void device_reset() override;
+	virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
 
 private:
 	u8 m_r4[256];
@@ -35,8 +35,8 @@ private:
 	u8 m_r18[256];
 	u8 m_reg;
 
-	std::array<s16, 0xc0> m_const;
-	std::array<s16, 0x40> m_offset;
+	std::array<s16, 0x100> m_const;
+	std::array<s16, 0x100> m_offset;
 
 	u8 s2_r();
 	u8 s10_r();
@@ -68,4 +68,4 @@ private:
 
 DECLARE_DEVICE_TYPE(MEG, meg_device)
 
-#endif
+#endif // MAME_SOUND_MEG_H

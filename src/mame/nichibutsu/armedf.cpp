@@ -311,7 +311,6 @@ Notes:
       LM324   - Texas Instruments LM324 Quad Operational Amplifier with True Differential Inputs
       MB3730  - Fujitsu MB3730 12W BTL Single Channel Amplifier
 
-
 ***********************************************************************/
 
 #include "emu.h"
@@ -641,13 +640,15 @@ void bigfghtr_state::bigfghtr_mcu_io_map(address_map &map)
 	map(0x00600, 0x03fff).ram().share("sharedram");
 }
 
-void armedf_state::sound_map(address_map &map) // common sound map for the terra force bottom pcb, also used on armed f, tatakae big fighter, etc
+// common sound map for the terra force bottom pcb, also used on armed f, tatakae big fighter, etc
+void armedf_state::sound_map(address_map &map)
 {
 	map(0x0000, 0xf7ff).rom();
 	map(0xf800, 0xffff).ram();
 }
 
-void armedf_state::cclimbr2_soundmap(address_map &map) // common sound map for the crazy climber 2 and legion bottom pcbs
+// common sound map for the crazy climber 2 and legion bottom pcbs
+void armedf_state::cclimbr2_soundmap(address_map &map)
 {
 	map(0x0000, 0xbfff).rom();
 	map(0xc000, 0xffff).ram();
@@ -1134,11 +1135,17 @@ void armedf_state::sound_config_common(machine_config &config) // common amongst
 	//  Sum:                  0.83325
 	//  Multiply all 3 values by 1 / 0.83325 (i.e. 1.20012):
 	// Final values are: ym: 0.2; dac1: 0.4; dac2: 0.4
-	FILTER_BIQUAD(config, m_ymfilter).opamp_sk_lowpass_setup(RES_K(4.7), RES_K(4.7), RES_M(999.99), RES_R(0.001), CAP_N(3.3), CAP_N(1.0)); // R17, R16, nothing(infinite resistance), wire(short), C82, C68
+
+	// R17, R16, nothing(infinite resistance), wire(short), C82, C68
+	FILTER_BIQUAD(config, m_ymfilter).opamp_sk_lowpass_setup(RES_K(4.7), RES_K(4.7), RES_M(999.99), RES_R(0.001), CAP_N(3.3), CAP_N(1.0));
 	m_ymfilter->add_route(ALL_OUTPUTS, "speaker", 1.0);
-	FILTER_BIQUAD(config, m_dacfilter1).opamp_sk_lowpass_setup(RES_K(10), RES_K(10), RES_M(999.99), RES_R(0.001), CAP_N(10), CAP_N(4.7)); // R15, R10, nothing(infinite resistance), wire(short), C81, C60
+
+	// R15, R10, nothing(infinite resistance), wire(short), C81, C60
+	FILTER_BIQUAD(config, m_dacfilter1).opamp_sk_lowpass_setup(RES_K(10), RES_K(10), RES_M(999.99), RES_R(0.001), CAP_N(10), CAP_N(4.7));
 	m_dacfilter1->add_route(ALL_OUTPUTS, "speaker", 1.0);
-	FILTER_BIQUAD(config, m_dacfilter2).opamp_sk_lowpass_setup(RES_K(10), RES_K(10), RES_M(999.99), RES_R(0.001), CAP_N(10), CAP_N(4.7)); // R13, R9, nothing(infinite resistance), wire(short), C66, C61
+
+	// R13, R9, nothing(infinite resistance), wire(short), C66, C61
+	FILTER_BIQUAD(config, m_dacfilter2).opamp_sk_lowpass_setup(RES_K(10), RES_K(10), RES_M(999.99), RES_R(0.001), CAP_N(10), CAP_N(4.7));
 	m_dacfilter2->add_route(ALL_OUTPUTS, "speaker", 1.0);
 
 	DAC_8BIT_R2R(config, "dac1", 0).add_route(ALL_OUTPUTS, m_dacfilter1, 0.4); // SIP R2R DAC @ G11-1 with 74HC374P latch
@@ -1148,6 +1155,7 @@ void armedf_state::sound_config_common(machine_config &config) // common amongst
 void armedf_state::sound_config(machine_config &config) // 3526, used on almost all non-bootlegs
 {
 	sound_config_common(config);
+
 	m_audiocpu->set_addrmap(AS_PROGRAM, &armedf_state::sound_map);
 	m_audiocpu->set_addrmap(AS_IO, &armedf_state::sound_3526_portmap);
 
@@ -1157,6 +1165,7 @@ void armedf_state::sound_config(machine_config &config) // 3526, used on almost 
 void armedf_state::sound_config_3812(machine_config &config) // 3812, used on bootlegs and skyrobo/bigfghtr
 {
 	sound_config_common(config);
+
 	m_audiocpu->set_addrmap(AS_PROGRAM, &armedf_state::sound_map);
 	m_audiocpu->set_addrmap(AS_IO, &armedf_state::sound_portmap);
 
@@ -1166,6 +1175,7 @@ void armedf_state::sound_config_3812(machine_config &config) // 3812, used on bo
 void armedf_state::sound_config_legion(machine_config &config) // 3526, used on non-bootleg legion and cclimbr2
 {
 	sound_config_common(config);
+
 	m_audiocpu->set_addrmap(AS_PROGRAM, &armedf_state::cclimbr2_soundmap);
 	m_audiocpu->set_addrmap(AS_IO, &armedf_state::sound_3526_portmap);
 
@@ -1175,6 +1185,7 @@ void armedf_state::sound_config_legion(machine_config &config) // 3526, used on 
 void armedf_state::sound_config_legion_3812(machine_config &config) // 3812, used on legion bootlegs
 {
 	sound_config_common(config);
+
 	m_audiocpu->set_addrmap(AS_PROGRAM, &armedf_state::cclimbr2_soundmap);
 	m_audiocpu->set_addrmap(AS_IO, &armedf_state::sound_portmap);
 
@@ -1191,6 +1202,7 @@ void armedf_state::terraf(machine_config &config)
 	NB1414M4(config, m_nb1414m4, 0);
 
 	video_config(config, 12, 8, 248);
+
 	MCFG_VIDEO_START_OVERRIDE(armedf_state,terraf)
 
 	/* sound hardware */
@@ -1208,6 +1220,7 @@ void armedf_state::terrafjb(machine_config &config)
 	m_extra->set_addrmap(AS_IO, &armedf_state::terrafjb_extraz80_portmap);
 
 	video_config(config, 12, 8, 248);
+
 	MCFG_VIDEO_START_OVERRIDE(armedf_state,terraf)
 
 	/* sound hardware */
@@ -1234,7 +1247,7 @@ void armedf_state::kozure(machine_config &config)
 	MCFG_VIDEO_START_OVERRIDE(armedf_state,terraf)
 
 	/* sound hardware */
-	sound_config(config);
+	sound_config_3812(config);
 }
 
 void armedf_state::armedf(machine_config &config)
@@ -1244,6 +1257,7 @@ void armedf_state::armedf(machine_config &config)
 	m_maincpu->set_vblank_int("screen", FUNC(armedf_state::irq1_line_assert));
 
 	video_config(config, 12, 8, 248);
+
 	MCFG_VIDEO_START_OVERRIDE(armedf_state,armedf)
 
 	/* sound hardware */
@@ -1259,6 +1273,7 @@ void armedf_state::cclimbr2(machine_config &config)
 	NB1414M4(config, m_nb1414m4, 0);
 
 	video_config(config, 14, 16, 240);
+
 	MCFG_VIDEO_START_OVERRIDE(armedf_state,terraf)
 
 	/* sound hardware */
@@ -1271,6 +1286,7 @@ void armedf_state::legion_common(machine_config &config)
 	m_maincpu->set_vblank_int("screen", FUNC(armedf_state::irq2_line_assert));
 
 	video_config(config, 14, 16, 240);
+
 	MCFG_VIDEO_START_OVERRIDE(armedf_state,terraf)
 }
 
@@ -1315,10 +1331,12 @@ void bigfghtr_state::bigfghtr(machine_config &config)
 	mcu.port_in_cb<1>().set_constant(0xdf); // bit 5: bus contention related?
 
 	video_config(config, 12, 8, 248);
+
 	MCFG_VIDEO_START_OVERRIDE(bigfghtr_state,armedf)
 
 	sound_config_3812(config);
 }
+
 
 /*************************************
  *

@@ -109,8 +109,8 @@ public:
 	void alphatp2(machine_config &config);
 	void alphatp2u(machine_config &config);
 protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 private:
 
@@ -132,9 +132,9 @@ private:
 	void beep_w(u8 data);
 	void bank_w(u8 data);
 
-	void alphatp2_io(address_map &map);
-	void alphatp2_map(address_map &map);
-	void alphatp2_mem(address_map &map);
+	void alphatp2_io(address_map &map) ATTR_COLD;
+	void alphatp2_map(address_map &map) ATTR_COLD;
+	void alphatp2_mem(address_map &map) ATTR_COLD;
 
 	required_device<address_map_bank_device> m_bankdev;
 	required_device<i8041a_device> m_kbdmcu;
@@ -182,8 +182,8 @@ public:
 	void alphatp3(machine_config &config);
 	void alphatp30(machine_config &config);
 protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 private:
 
 	u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
@@ -216,11 +216,11 @@ private:
 
 	u8* vramext_addr_xlate(offs_t offset);
 
-	void alphatp30_8088_io(address_map &map);
-	void alphatp30_8088_map(address_map &map);
-	void alphatp3_io(address_map &map);
-	void alphatp3_map(address_map &map);
-	void alphatp3_mem(address_map &map);
+	void alphatp30_8088_io(address_map &map) ATTR_COLD;
+	void alphatp30_8088_map(address_map &map) ATTR_COLD;
+	void alphatp3_io(address_map &map) ATTR_COLD;
+	void alphatp3_map(address_map &map) ATTR_COLD;
+	void alphatp3_mem(address_map &map) ATTR_COLD;
 
 	required_device<address_map_bank_device> m_bankdev;
 	required_device<i8041a_device> m_kbdmcu;
@@ -671,7 +671,7 @@ PORT_START("COL.12")
 PORT_START("COL.13")
 	PORT_BIT(0x0001, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME("/ Pad")       PORT_CODE(KEYCODE_SLASH_PAD)PORT_CHAR(UCHAR_MAMEKEY(SLASH_PAD))
 	PORT_BIT(0x0002, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME("*")           PORT_CODE(KEYCODE_ASTERISK) PORT_CHAR(UCHAR_MAMEKEY(ASTERISK))  // test ?
-	PORT_BIT(0x0004, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME("\xc2\xae /Ctrl")PORT_CODE(KEYCODE_LCONTROL)   PORT_CODE(KEYCODE_LCONTROL)         // scan 6Bh -> C2h funct.
+	PORT_BIT(0x0004, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME(u8"® /Ctrl")   PORT_CODE(KEYCODE_LCONTROL)   PORT_CODE(KEYCODE_LCONTROL)         // scan 6Bh -> C2h funct.
 	PORT_BIT(0x0008, IP_ACTIVE_HIGH, IPT_UNKNOWN)                  // 0xc2 ??
 	PORT_BIT(0x0010, IP_ACTIVE_HIGH, IPT_UNKNOWN)
 	PORT_BIT(0x0080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME("F3")          PORT_CODE(KEYCODE_F3)       PORT_CHAR(UCHAR_MAMEKEY(F3)) // scan:=68h 88h-> F3 ok
@@ -845,7 +845,7 @@ PORT_START("COL.12")
 PORT_START("COL.13")
 	PORT_BIT(0x0001, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME("/ Pad")       PORT_CODE(KEYCODE_SLASH_PAD)PORT_CHAR(UCHAR_MAMEKEY(SLASH_PAD))
 	PORT_BIT(0x0002, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME("*")           PORT_CODE(KEYCODE_ASTERISK) PORT_CHAR(UCHAR_MAMEKEY(ASTERISK))  // test ?
-	PORT_BIT(0x0004, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME("\xc2\xae /Ctrl")PORT_CODE(KEYCODE_LCONTROL)   PORT_CODE(KEYCODE_LCONTROL)         // scan 6Bh -> C2h funct.
+	PORT_BIT(0x0004, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME(u8"® /Ctrl")   PORT_CODE(KEYCODE_LCONTROL)   PORT_CODE(KEYCODE_LCONTROL)         // scan 6Bh -> C2h funct.
 	PORT_BIT(0x0008, IP_ACTIVE_HIGH, IPT_UNKNOWN)                  // 0xc2 ??
 	PORT_BIT(0x0010, IP_ACTIVE_HIGH, IPT_UNKNOWN)
 	PORT_BIT(0x0080, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_NAME("F3")          PORT_CODE(KEYCODE_F3)       PORT_CHAR(UCHAR_MAMEKEY(F3)) // scan:=68h 88h-> F3 ok

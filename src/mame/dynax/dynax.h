@@ -12,12 +12,13 @@
 
 #include "dynax_blitter_rev2.h"
 
+#include "machine/74259.h"
 #include "machine/bankdev.h"
 #include "machine/gen_latch.h"
 #include "machine/rstbuf.h"
+#include "machine/ticket.h"
 #include "sound/msm5205.h"
 #include "sound/okim6295.h"
-#include "machine/74259.h"
 
 #include "emupal.h"
 #include "screen.h"
@@ -33,8 +34,10 @@ public:
 		, m_palette(*this, "palette")
 		, m_mainlatch(*this, "mainlatch")
 		, m_blitter(*this, "blitter")
+		, m_hopper(*this, "hopper")
 		, m_bankdev(*this, "bankdev")
 		, m_mainirq(*this, "mainirq")
+		, m_io_key{ { *this, "KEY%u", 0U }, { *this, "KEY%u", 5U } }
 	{
 	}
 
@@ -43,7 +46,9 @@ public:
 	void majrjhdx(machine_config &config);
 	void tenkai(machine_config &config);
 	void ougonhai(machine_config &config);
+	void ougonhaib1(machine_config &config);
 	void mjreach(machine_config &config);
+	void mjreachp2(machine_config &config);
 	void mjdialq2(machine_config &config);
 	void sprtmtch(machine_config &config);
 
@@ -64,6 +69,10 @@ protected:
 	required_device<palette_device> m_palette;
 	optional_device<ls259_device> m_mainlatch;
 	optional_device<dynax_blitter_rev2_device> m_blitter;
+	optional_device<hopper_device> m_hopper;
+	optional_device<address_map_bank_device> m_bankdev;
+	optional_device<rst_pos_buffer_device> m_mainirq;
+	optional_ioport_array<5> m_io_key[2];
 
 	/* input / output */
 	uint8_t m_input_sel = 0U;
@@ -89,8 +98,7 @@ protected:
 	void coincounter_0_w(int state);
 	void coincounter_1_w(int state);
 	uint8_t ret_ff();
-	uint8_t hanamai_keyboard_0_r();
-	uint8_t hanamai_keyboard_1_r();
+	template <unsigned N> uint8_t hanamai_keyboard_r();
 	void hanamai_keyboard_w(uint8_t data);
 	void dynax_rombank_w(uint8_t data);
 	void dynax_blit_palette23_w(uint8_t data);
@@ -112,10 +120,6 @@ protected:
 	void dynax_common_reset();
 
 	void sprtmtch_mem_map(address_map &map) ATTR_COLD;
-
-	// devices
-	optional_device<address_map_bank_device> m_bankdev;
-	optional_device<rst_pos_buffer_device> m_mainirq;
 
 	// up to 8 layers, 2 images per layer (interleaved on screen)
 	std::unique_ptr<uint8_t[]>  m_pixmap[8][2]{};
@@ -162,10 +166,10 @@ private:
 	void tenkai_p8_w(uint8_t data);
 	uint8_t tenkai_p8_r();
 	void ougonhai_p7_w(uint8_t data);
+	void mjreachp2_p8_w(uint8_t data);
 	void tenkai_6c_w(int state);
 	void tenkai_70_w(int state);
 	void tenkai_blit_romregion_w(uint8_t data);
-	uint8_t gekisha_keyboard_0_r();
 	uint8_t gekisha_keyboard_1_r();
 	void gekisha_hopper_w(offs_t offset, uint8_t data);
 	void gekisha_p4_w(uint8_t data);
@@ -209,8 +213,13 @@ private:
 	void tenkai_map(address_map &map) ATTR_COLD;
 	void tenkai_banked_map(address_map &map) ATTR_COLD;
 
+	void ougonhai_map(address_map &map) ATTR_COLD;
+	void ougonhai_banked_map(address_map &map) ATTR_COLD;
+
 	void gekisha_map(address_map &map) ATTR_COLD;
 	void gekisha_banked_map(address_map &map) ATTR_COLD;
+
+	void mjreachp2_map(address_map &map) ATTR_COLD;
 
 	// misc
 	int m_rombank = 0;
@@ -259,9 +268,6 @@ protected:
 	void adpcm_reset_w(uint8_t data);
 
 private:
-	// input/output
-	uint8_t m_hopper = 0U; // hjingi
-
 	// misc
 	int m_toggle = 0;
 
@@ -274,8 +280,6 @@ private:
 	void nanajign_palette_hi_w(offs_t offset, uint8_t data);
 	void nanajign_palette_update(offs_t offset);
 	void hjingi_lockout_w(int state);
-	void hjingi_hopper_w(int state);
-	uint8_t hjingi_hopper_bit();
 	uint8_t hjingi_keyboard_0_r();
 	uint8_t hjingi_keyboard_1_r();
 	void yarunara_input_w(offs_t offset, uint8_t data);
@@ -455,6 +459,7 @@ private:
 };
 
 
-INPUT_PORTS_EXTERN(HANAFUDA_KEYS_BET);
+INPUT_PORTS_EXTERN(dynax_mahjong_keys);
+INPUT_PORTS_EXTERN(dynax_hanafuda_keys_bet);
 
 #endif // MAME_DYNAX_DYNAX_H

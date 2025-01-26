@@ -21,6 +21,7 @@ project "utils"
 		MAME_DIR .. "3rdparty",
 		ext_includedir("expat"),
 		ext_includedir("zlib"),
+		ext_includedir("zstd"),
 		ext_includedir("flac"),
 		ext_includedir("utf8proc"),
 	}
@@ -94,6 +95,8 @@ end
 		MAME_DIR .. "src/lib/util/lrucache.h",
 		MAME_DIR .. "src/lib/util/md5.cpp",
 		MAME_DIR .. "src/lib/util/md5.h",
+		MAME_DIR .. "src/lib/util/mfpresolve.cpp",
+		MAME_DIR .. "src/lib/util/mfpresolve.h",
 		MAME_DIR .. "src/lib/util/msdib.cpp",
 		MAME_DIR .. "src/lib/util/msdib.h",
 		MAME_DIR .. "src/lib/util/multibyte.h",

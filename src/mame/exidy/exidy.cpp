@@ -209,12 +209,12 @@ public:
 	void mtrap(machine_config &config);
 	void pepper2(machine_config &config);
 
-	DECLARE_CUSTOM_INPUT_MEMBER(intsource_coins_r);
+	ioport_value intsource_coins_r();
 	DECLARE_INPUT_CHANGED_MEMBER(coin_count_w);
 
 protected:
-	virtual void machine_start() override;
-	virtual void video_start() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void video_start() override ATTR_COLD;
 
 	required_ioport m_dsw;
 	required_ioport m_in0;
@@ -231,7 +231,7 @@ protected:
 
 	uint8_t exidy_interrupt_r();
 
-	void exidy_map(address_map &map);
+	void exidy_map(address_map &map) ATTR_COLD;
 
 private:
 	required_shared_ptr<uint8_t> m_videoram;
@@ -268,9 +268,9 @@ private:
 	void draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void check_collision();
 
-	void venture_map(address_map &map);
-	void mtrap_map(address_map &map);
-	void pepper2_map(address_map &map);
+	void venture_map(address_map &map) ATTR_COLD;
+	void mtrap_map(address_map &map) ATTR_COLD;
+	void pepper2_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -289,14 +289,14 @@ public:
 	void rallys(machine_config &config);
 	void phantoma(machine_config &config);
 
-	DECLARE_CUSTOM_INPUT_MEMBER(spectar_coins_r);
-	DECLARE_CUSTOM_INPUT_MEMBER(rallys_coin1_r);
+	ioport_value spectar_coins_r();
+	ioport_value rallys_coin1_r();
 
 	void init_sidetrac();
 	void init_spectar();
 
 protected:
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 
 	void set_max_freq(int freq) { m_max_freq = freq; }
 
@@ -317,10 +317,10 @@ private:
 	uint8_t m_tone_freq = 0;
 	uint8_t m_tone_active = 0;
 
-	void sidetrac_map(address_map &map);
-	void spectar_map(address_map &map);
-	void rallys_map(address_map &map);
-	void phantoma_map(address_map &map);
+	void sidetrac_map(address_map &map) ATTR_COLD;
+	void spectar_map(address_map &map) ATTR_COLD;
+	void rallys_map(address_map &map) ATTR_COLD;
+	void phantoma_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -338,7 +338,7 @@ public:
 	void init_targ();
 
 protected:
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 
 	void targ_audio_1_w(uint8_t data);
 	void targ_audio_2_w(uint8_t data);
@@ -349,7 +349,7 @@ private:
 	uint8_t m_port_2_last = 0;
 	uint8_t m_tone_pointer = 0;
 
-	void targ_map(address_map &map);
+	void targ_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -364,10 +364,10 @@ public:
 
 	void teetert(machine_config &config);
 
-	DECLARE_CUSTOM_INPUT_MEMBER(teetert_input_r);
+	ioport_value teetert_input_r();
 
 protected:
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 
 private:
 	required_ioport m_dial;
@@ -387,14 +387,14 @@ public:
 	void fax(machine_config &config);
 
 protected:
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 
 private:
 	required_memory_bank m_rom_bank;
 
 	void fax_bank_select_w(uint8_t data);
 
-	void fax_map(address_map &map);
+	void fax_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -404,26 +404,26 @@ private:
  *
  *************************************/
 
-CUSTOM_INPUT_MEMBER(exidy_state::intsource_coins_r)
+ioport_value exidy_state::intsource_coins_r()
 {
 	uint8_t const dsw = m_dsw->read();
 	uint8_t const in0 = m_in0->read();
 	return (BIT(~in0, 7) << 1) | BIT(dsw, 0);
 }
 
-CUSTOM_INPUT_MEMBER(spectar_state::spectar_coins_r)
+ioport_value spectar_state::spectar_coins_r()
 {
 	uint8_t const dsw = m_dsw->read();
 	uint8_t const in0 = m_in0->read();
 	return (BIT(~in0, 7) << 1) | BIT(~dsw, 0);
 }
 
-CUSTOM_INPUT_MEMBER(spectar_state::rallys_coin1_r)
+ioport_value spectar_state::rallys_coin1_r()
 {
 	return BIT(m_in0->read(), 7);
 }
 
-CUSTOM_INPUT_MEMBER(teetert_state::teetert_input_r)
+ioport_value teetert_state::teetert_input_r()
 {
 	uint8_t const dial = m_dial->read();
 
@@ -682,8 +682,8 @@ static INPUT_PORTS_START( targ )
 
 	PORT_START("INTSOURCE")
 	PORT_BIT( 0x1f, IP_ACTIVE_HIGH, IPT_CUSTOM )
-	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(spectar_state, spectar_coins_r)
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(spectar_state::spectar_coins_r))
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 
 	PORT_START("IN2")
 	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -752,7 +752,7 @@ static INPUT_PORTS_START( rallys )
 	PORT_MODIFY("INTSOURCE")
 	PORT_BIT( 0x1f, IP_ACTIVE_HIGH, IPT_CUSTOM )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN2 )
-	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(spectar_state, rallys_coin1_r)
+	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(spectar_state::rallys_coin1_r))
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( phantoma )
@@ -820,8 +820,8 @@ static INPUT_PORTS_START( mtrap )
 */
 
 	PORT_BIT( 0x1f, IP_ACTIVE_HIGH, IPT_CUSTOM )
-	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(exidy_state, intsource_coins_r)
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(exidy_state::intsource_coins_r))
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 
 	PORT_START("IN2")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_NAME("Yellow Button")
@@ -836,7 +836,7 @@ INPUT_PORTS_END
 
 static INPUT_PORTS_START( venture )
 	PORT_START("DSW")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_COIN2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, exidy_state, coin_count_w, 1)
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_COIN2 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(exidy_state::coin_count_w), 1)
 	PORT_DIPNAME( 0x06, 0x00, DEF_STR( Bonus_Life ) ) PORT_DIPLOCATION("SW1:2,3")
 	PORT_DIPSETTING(    0x00, "20000" )
 	PORT_DIPSETTING(    0x02, "30000" )
@@ -864,7 +864,7 @@ static INPUT_PORTS_START( venture )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_BUTTON1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_JOYSTICK_UP ) PORT_8WAY
 	PORT_BIT( 0x40, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN ) PORT_8WAY
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, exidy_state, coin_count_w, 0)
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(exidy_state::coin_count_w), 0)
 
 	PORT_START("INTSOURCE")
 /*
@@ -881,8 +881,8 @@ static INPUT_PORTS_START( venture )
     PORT_DIPSETTING(    0x08, DEF_STR( Cocktail ) )
 */
 	PORT_BIT( 0x1f, IP_ACTIVE_HIGH, IPT_CUSTOM )
-	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(exidy_state, intsource_coins_r)
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(exidy_state::intsource_coins_r))
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 
 	PORT_START("IN2")
 	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -915,7 +915,7 @@ static INPUT_PORTS_START( teetert )
 	PORT_START("IN0")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW, IPT_START1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW, IPT_START2 )
-	PORT_BIT( 0x44, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(teetert_state, teetert_input_r)
+	PORT_BIT( 0x44, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(teetert_state::teetert_input_r))
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_BUTTON1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -936,8 +936,8 @@ static INPUT_PORTS_START( teetert )
     PORT_DIPSETTING(    0x08, DEF_STR( Cocktail ) )
 */
 	PORT_BIT( 0x1f, IP_ACTIVE_HIGH, IPT_UNKNOWN )
-	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(exidy_state, intsource_coins_r)
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(exidy_state::intsource_coins_r))
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 
 	PORT_START("IN2")
 	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -995,8 +995,8 @@ static INPUT_PORTS_START( pepper2 )
     PORT_DIPSETTING(    0x08, DEF_STR( Cocktail ) )
 */
 	PORT_BIT( 0x1f, IP_ACTIVE_HIGH, IPT_CUSTOM )
-	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(exidy_state, intsource_coins_r)
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(exidy_state::intsource_coins_r))
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 
 	PORT_START("IN2")
 	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -1046,8 +1046,8 @@ static INPUT_PORTS_START( fax )
     PORT_DIPSETTING(    0x08, DEF_STR( Cocktail ) )
 */
 	PORT_BIT( 0x1f, IP_ACTIVE_HIGH, IPT_CUSTOM )
-	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(exidy_state, intsource_coins_r)
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x60, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(exidy_state::intsource_coins_r))
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 
 	PORT_START("IN2")
 	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -1885,7 +1885,7 @@ ROM_START( spectar )
 
 	ROM_REGION( 0x0140, "proms", 0 )
 	ROM_LOAD( "spl5c-2.5c",   0x0000, 0x0100, CRC(9ca2e061) SHA1(4111325b00a1017042d55c59308d41e8333ba627) ) // 6301 according to the Spectar manual, also seen as IM 5623CPE on PCB
-	ROM_LOAD( "prom.6d",      0x0100, 0x0020, BAD_DUMP CRC(e26f9053) SHA1(eec35b6aa2c2d305418306bf4a1754a0583f109f) ) // screen controller PROM, 6331 according to the Spectar manual, dumped from a bootleg
+	ROM_LOAD( "hrl6d-1.6d",   0x0100, 0x0020, CRC(e26f9053) SHA1(eec35b6aa2c2d305418306bf4a1754a0583f109f) ) // screen controller PROM, 6331 according to the Spectar manual, also seen as IM 5610CPE on PCB
 	ROM_LOAD( "hrl14h-1.14h", 0x0120, 0x0020, CRC(f76b4fcf) SHA1(197e0cc508ffeb5cefa4046bdfb158939d598225) ) // 6331 according to the Spectar manual
 ROM_END
 
@@ -1899,13 +1899,13 @@ ROM_START( spectar1 )
 	ROM_LOAD( "spl7a-1.7a",   0x3000, 0x0800, CRC(e08b0d8d) SHA1(6ffd6f8fb50c9fc09c38f56da7d6d005b66e78cc) )
 	ROM_LOAD( "spl6a-1.6a",   0x3800, 0x0800, CRC(f0e4e71a) SHA1(5487a94650c964a7ab07f30aacab0b470dcb3b40) )
 
-	ROM_REGION( 0x0400, "gfx1", 0 ) // some PCBs were seen with hrl11d-1
+	ROM_REGION( 0x0400, "gfx1", 0 ) // some PCBs were seen with hrl11d-1 (CRC(9f03513e) SHA1(aa4763e49df65e5686a96431543580b8d8285893))
 	ROM_LOAD( "hrl11d-2.11d", 0x0000, 0x0400, CRC(c55b645d) SHA1(0c18277939d74e3e1281a7f114a34781d30c2baf) )  /* this is actually not used (all FF) */
 	ROM_CONTINUE(             0x0000, 0x0400 )  /* overwrite with the real one */
 
 	ROM_REGION( 0x0140, "proms", 0 )
 	ROM_LOAD( "spl5c-2.5c",   0x0000, 0x0100, CRC(9ca2e061) SHA1(4111325b00a1017042d55c59308d41e8333ba627) ) // 6301 according to the Spectar manual, also seen as IM 5623CPE on PCB
-	ROM_LOAD( "prom.6d",      0x0100, 0x0020, BAD_DUMP CRC(e26f9053) SHA1(eec35b6aa2c2d305418306bf4a1754a0583f109f) ) // screen controller PROM, 6331 according to the Spectar manual, dumped from a bootleg
+	ROM_LOAD( "hrl6d-1.6d",   0x0100, 0x0020, CRC(e26f9053) SHA1(eec35b6aa2c2d305418306bf4a1754a0583f109f) ) // screen controller PROM, 6331 according to the Spectar manual, also seen as IM 5610CPE on PCB
 	ROM_LOAD( "hrl14h-1.14h", 0x0120, 0x0020, CRC(f76b4fcf) SHA1(197e0cc508ffeb5cefa4046bdfb158939d598225) ) // 6331 according to the Spectar manual
 ROM_END
 

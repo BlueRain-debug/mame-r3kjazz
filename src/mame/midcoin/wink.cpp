@@ -69,17 +69,17 @@ private:
 
 	TILE_GET_INFO_MEMBER(get_bg_tile_info);
 
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
-	virtual void video_start() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
+	virtual void video_start() override ATTR_COLD;
 
 	uint32_t screen_update_wink(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 
 	INTERRUPT_GEN_MEMBER(wink_sound);
-	void wink_io(address_map &map);
-	void wink_map(address_map &map);
-	void wink_sound_io(address_map &map);
-	void wink_sound_map(address_map &map);
+	void wink_io(address_map &map) ATTR_COLD;
+	void wink_map(address_map &map) ATTR_COLD;
+	void wink_sound_io(address_map &map) ATTR_COLD;
+	void wink_sound_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -487,5 +487,5 @@ void wink_state::init_wink()
 } // anonymous namespace
 
 
-GAME( 1985, wink,  0,    wink, wink, wink_state, init_wink, ROT0, "Midcoin", "Wink (set 1)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION | MACHINE_SUPPORTS_SAVE )
-GAME( 1985, winka, wink, wink, wink, wink_state, init_wink, ROT0, "Midcoin", "Wink (set 2)", MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION | MACHINE_SUPPORTS_SAVE )
+GAME( 1985, wink,  0,    wink, wink, wink_state, init_wink, ROT0, "Midcoin", "Wink (set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION | MACHINE_SUPPORTS_SAVE )
+GAME( 1985, winka, wink, wink, wink, wink_state, init_wink, ROT0, "Midcoin", "Wink (set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_UNEMULATED_PROTECTION | MACHINE_SUPPORTS_SAVE )

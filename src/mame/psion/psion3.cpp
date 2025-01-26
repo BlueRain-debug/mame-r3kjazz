@@ -53,8 +53,8 @@ public:
 	DECLARE_INPUT_CHANGED_MEMBER(key_on);
 
 protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 private:
 	required_device<cpu_device> m_maincpu;
@@ -71,9 +71,9 @@ private:
 
 	void palette_init(palette_device &palette);
 
-	void mem_map(address_map &map);
-	void io_map(address_map &map);
-	void asic1_map(address_map &map);
+	void mem_map(address_map &map) ATTR_COLD;
+	void io_map(address_map &map) ATTR_COLD;
+	void asic1_map(address_map &map) ATTR_COLD;
 
 	uint8_t port_data_r();
 	void port_data_w(uint8_t data);
@@ -205,7 +205,7 @@ static INPUT_PORTS_START( psion3 )
 	PORT_BIT(0xf8, IP_ACTIVE_HIGH, IPT_UNUSED)
 
 	PORT_START("ESC")
-	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_ESC) PORT_CHAR(UCHAR_MAMEKEY(ESC)) PORT_NAME("Esc On") PORT_CHANGED_MEMBER(DEVICE_SELF, psion3_state, key_on, 0)
+	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_KEYBOARD) PORT_CODE(KEYCODE_ESC) PORT_CHAR(UCHAR_MAMEKEY(ESC)) PORT_NAME("Esc On") PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(psion3_state::key_on), 0)
 INPUT_PORTS_END
 
 
@@ -369,6 +369,6 @@ ROM_END
 
 
 //    YEAR  NAME       PARENT   COMPAT  MACHINE   INPUT      CLASS          INIT         COMPANY             FULLNAME           FLAGS
-COMP( 1991, psion3,    0,       0,      psion3,   psion3,    psion3_state,  empty_init,  "Psion",            "Series 3",        MACHINE_IMPERFECT_SOUND )
-COMP( 1992, pocketbk,  psion3,  0,      psion3s,  pocketbk,  psion3_state,  empty_init,  "Acorn Computers",  "Pocket Book",     MACHINE_IMPERFECT_SOUND )
-COMP( 1994, psion3s,   psion3,  0,      psion3s,  psion3s,   psion3_state,  empty_init,  "Psion",            "Series 3s",       MACHINE_IMPERFECT_SOUND )
+COMP( 1991, psion3,    0,       0,      psion3,   psion3,    psion3_state,  empty_init,  "Psion",            "Series 3",        MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND )
+COMP( 1992, pocketbk,  psion3,  0,      psion3s,  pocketbk,  psion3_state,  empty_init,  "Acorn Computers",  "Pocket Book",     MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND )
+COMP( 1994, psion3s,   psion3,  0,      psion3s,  psion3s,   psion3_state,  empty_init,  "Psion",            "Series 3s",       MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND )

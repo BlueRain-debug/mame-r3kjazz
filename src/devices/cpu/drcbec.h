@@ -8,15 +8,16 @@
 
 ***************************************************************************/
 
-#pragma once
+#ifndef MAME_CPU_DRCBEC_H
+#define MAME_CPU_DRCBEC_H
 
-#ifndef __DRCBEC_H__
-#define __DRCBEC_H__
+#pragma once
 
 #include "drcuml.h"
 #include "drcbeut.h"
 
 
+namespace drc {
 
 //**************************************************************************
 //  TYPE DEFINITIONS
@@ -57,5 +58,8 @@ private:
 	static uint64_t           s_immediate_zero;
 };
 
+} // namespace drc
 
-#endif /* __DRCBEC_H__ */
+using drc::drcbe_c;
+
+#endif // MAME_CPU_DRCBEC_H

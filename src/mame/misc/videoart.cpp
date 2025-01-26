@@ -65,7 +65,7 @@ public:
 	void videoart(machine_config &config);
 
 protected:
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 
 private:
 	required_device<m6805r2_device> m_maincpu;
@@ -73,25 +73,8 @@ private:
 	memory_share_creator<u8> m_vram;
 	required_device<screen_device> m_screen;
 	required_device<generic_slot_device> m_cart;
-	required_ioport_array<3> m_inputs;
+	required_ioport_array<4> m_inputs;
 	output_finder<> m_led;
-
-	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
-
-	TIMER_DEVICE_CALLBACK_MEMBER(scanline) { m_ef9367->update_scanline(param); }
-	u32 screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	void palette(palette_device &palette) const;
-
-	void vram_map(address_map &map);
-	void vram_w(offs_t offset, u8 data);
-	u8 vram_r(offs_t offset);
-	void msl_w(u8 data) { m_pixel_offset = data & 7; }
-
-	void porta_w(u8 data);
-	u8 porta_r();
-	void portb_w(u8 data);
-	void portc_w(u8 data);
-	u8 portd_r();
 
 	u8 m_porta = 0xff;
 	u8 m_portb = 0xff;
@@ -102,6 +85,23 @@ private:
 	u8 m_command = 0;
 	u8 m_pixel_offset = 0;
 	u8 m_vramdata = 0;
+
+	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
+
+	TIMER_DEVICE_CALLBACK_MEMBER(scanline) { m_ef9367->update_scanline(param); }
+	u32 screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void palette(palette_device &palette) const;
+
+	void vram_map(address_map &map) ATTR_COLD;
+	void vram_w(offs_t offset, u8 data);
+	u8 vram_r(offs_t offset);
+	void msl_w(u8 data) { m_pixel_offset = data & 7; }
+
+	void porta_w(u8 data);
+	u8 porta_r();
+	void portb_w(u8 data);
+	void portc_w(u8 data);
+	u8 portd_r();
 };
 
 
@@ -323,7 +323,7 @@ u8 videoart_state::portd_r()
 static INPUT_PORTS_START( videoart )
 	PORT_START("IN0")
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_BUTTON5) PORT_NAME("Page")
-	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_BUTTON6) PORT_NAME("Clear") // actually 2 buttons
+	PORT_BIT(0x80, 0x80, IPT_CUSTOM) PORT_CONDITION("IN3", 0x03, EQUALS, 0x03) // clear
 
 	PORT_START("IN1")
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_BUTTON2) PORT_NAME("Horizontal")
@@ -333,14 +333,18 @@ static INPUT_PORTS_START( videoart )
 	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_BUTTON1) PORT_NAME("Draw")
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_BUTTON4) PORT_NAME("Erase")
 
+	PORT_START("IN3") // clear is actually 2 buttons
+	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_BUTTON6) PORT_NAME("Clear (1/2)")
+	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_BUTTON7) PORT_NAME("Clear (2/2)")
+
 	PORT_START("AN0")
 	PORT_BIT(0xff, 0x7b, IPT_AD_STICK_X) PORT_SENSITIVITY(50) PORT_KEYDELTA(2) PORT_CENTERDELTA(0) PORT_REVERSE PORT_MINMAX(0x00, 0xf6) PORT_PLAYER(2) PORT_NAME("Color")
 
 	PORT_START("AN1")
-	PORT_BIT(0xff, 0x80, IPT_AD_STICK_X) PORT_SENSITIVITY(50) PORT_KEYDELTA(4) PORT_CENTERDELTA(0)
+	PORT_BIT(0xff, 0x80, IPT_AD_STICK_X) PORT_SENSITIVITY(50) PORT_KEYDELTA(4) PORT_CENTERDELTA(0) // joystick does not autocenter
 
 	PORT_START("AN2")
-	PORT_BIT(0xff, 0x6a, IPT_AD_STICK_Y) PORT_SENSITIVITY(50) PORT_KEYDELTA(4) PORT_CENTERDELTA(0) PORT_REVERSE PORT_MINMAX(0x00, 0xd4)
+	PORT_BIT(0xff, 0x6a, IPT_AD_STICK_Y) PORT_SENSITIVITY(50) PORT_KEYDELTA(4) PORT_CENTERDELTA(0) PORT_REVERSE PORT_MINMAX(0x00, 0xd4) // "
 INPUT_PORTS_END
 
 

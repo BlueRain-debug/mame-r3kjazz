@@ -275,6 +275,7 @@ Notes:
 
 #include "emu.h"
 #include "cpu/i386/i386.h"
+#include "cpu/mcs51/mcs51.h"
 #include "machine/pci.h"
 #include "machine/pci-ide.h"
 #include "machine/pci-smbus.h"
@@ -283,8 +284,8 @@ Notes:
 #include "machine/i82371eb_ide.h"
 #include "machine/i82371eb_acpi.h"
 #include "machine/i82371eb_usb.h"
-#include "video/virge_pci.h"
 #include "bus/isa/isa_cards.h"
+#include "bus/pci/virge_pci.h"
 //#include "bus/rs232/hlemouse.h"
 //#include "bus/rs232/null_modem.h"
 //#include "bus/rs232/rs232.h"
@@ -319,7 +320,7 @@ private:
 	// optional for debugging ...
 	optional_device<voodoo_2_pci_device> m_voodoo2;
 
-	void midqslvr_map(address_map &map);
+	void midqslvr_map(address_map &map) ATTR_COLD;
 
 	static void superio_config(device_t *device);
 };
@@ -337,7 +338,7 @@ public:
 private:
 	required_device<pentium3_device> m_maincpu;
 
-	void graphite_map(address_map &map);
+	void graphite_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -377,6 +378,8 @@ void midway_quicksilver2_state::midqslvr(machine_config &config)
 	//m_maincpu->set_addrmap(AS_IO, &midway_quicksilver2_state::midqslvr_io);
 	m_maincpu->set_irq_acknowledge_callback("pci:07.0:pic8259_master", FUNC(pic8259_device::inta_cb));
 	m_maincpu->smiact().set("pci:00.0", FUNC(i82443bx_host_device::smi_act_w));
+
+	P87C552(config, "iocpu", 16'000'000).set_disable();
 
 	PCI_ROOT(config, "pci", 0);
 	I82443BX_HOST(config, "pci:00.0", 0, "maincpu", 64*1024*1024);
@@ -419,7 +422,7 @@ void midway_quicksilver2_state::midqslvr(machine_config &config)
 #endif
 	// "pci:0d.0" J4D2
 	// "pci:0e.0" J4D1
-	VIRGE_PCI(config, "pci:0e.0", 0); // J4C1
+	PCI_SLOT(config, "pci:1", pci_cards, 14, 0, 1, 2, 3, "virge");
 }
 
 // Graphite runs on incompatible HW, consider splitting if things starts to get hairy ...
@@ -534,13 +537,13 @@ ROM_END
 
 
 // there are almost certainly multiple versions of these; updates were offered on floppy disk.  The version numbers for the existing CHDs are unknown.
-GAME(1999, hydrthnd,    0,        midqslvr, 0, midway_quicksilver2_state, empty_init, ROT0, "Midway Games", "Hydro Thunder", MACHINE_IS_SKELETON)
-GAME(1999, hydrthnd101b,hydrthnd, midqslvr, 0, midway_quicksilver2_state, empty_init, ROT0, "Midway Games", "Hydro Thunder (v1.01b)", MACHINE_IS_SKELETON)
-GAME(1999, hydrthnd100d,hydrthnd, midqslvr, 0, midway_quicksilver2_state, empty_init, ROT0, "Midway Games", "Hydro Thunder (v1.00d)", MACHINE_IS_SKELETON)
+GAME(1999, hydrthnd,    0,        midqslvr, 0, midway_quicksilver2_state, empty_init, ROT0, "Midway Games", "Hydro Thunder", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+GAME(1999, hydrthnd101b,hydrthnd, midqslvr, 0, midway_quicksilver2_state, empty_init, ROT0, "Midway Games", "Hydro Thunder (v1.01b)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+GAME(1999, hydrthnd100d,hydrthnd, midqslvr, 0, midway_quicksilver2_state, empty_init, ROT0, "Midway Games", "Hydro Thunder (v1.00d)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
-GAME(2000, offrthnd,    0,        midqslvr, 0, midway_quicksilver2_state, empty_init, ROT0, "Midway Games", "Offroad Thunder", MACHINE_IS_SKELETON)
+GAME(2000, offrthnd,    0,        midqslvr, 0, midway_quicksilver2_state, empty_init, ROT0, "Midway Games", "Offroad Thunder", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
-GAME(2001, arctthnd,    0,        graphite, 0, midway_graphite_state, empty_init, ROT0, "Midway Games", "Arctic Thunder (v1.002)", MACHINE_IS_SKELETON)
+GAME(2001, arctthnd,    0,        graphite, 0, midway_graphite_state, empty_init, ROT0, "Midway Games", "Arctic Thunder (v1.002)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
-GAME(2001, ultarctc,    0,        graphite, 0, midway_graphite_state, empty_init, ROT0, "Midway Games", "Ultimate Arctic Thunder", MACHINE_IS_SKELETON)
-GAME(2004, ultarctcup,  ultarctc, graphite, 0, midway_graphite_state, empty_init, ROT0, "Midway Games", "Ultimate Arctic Thunder Update CD ver 1.950 (5/3/04)", MACHINE_IS_SKELETON)
+GAME(2001, ultarctc,    0,        graphite, 0, midway_graphite_state, empty_init, ROT0, "Midway Games", "Ultimate Arctic Thunder", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+GAME(2004, ultarctcup,  ultarctc, graphite, 0, midway_graphite_state, empty_init, ROT0, "Midway Games", "Ultimate Arctic Thunder Update CD ver 1.950 (5/3/04)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)

@@ -2060,7 +2060,7 @@ static INPUT_PORTS_START( aceattac )
 	PORT_BIT( 0xfff, 0x00, IPT_TRACKBALL_Y ) PORT_SENSITIVITY(100) PORT_KEYDELTA(30) PORT_PLAYER(TMP_PL1BALL)
 
 	PORT_START("HANDY1") // power of "hand" device
-	PORT_BIT( 0x07, 0x04, IPT_PEDAL2 ) PORT_SENSITIVITY(100) PORT_KEYDELTA(1) PORT_CENTERDELTA(2) PORT_PLAYER(TMP_PL1HAND) PORT_CHANGED_MEMBER(DEVICE_SELF, segas16b_state, handy_w, 0)
+	PORT_BIT( 0x07, 0x04, IPT_PEDAL2 ) PORT_SENSITIVITY(100) PORT_KEYDELTA(1) PORT_CENTERDELTA(2) PORT_PLAYER(TMP_PL1HAND) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(segas16b_state::handy_w), 0)
 
 	PORT_START("DIAL1") // toss formation
 	PORT_BIT( 0x0f, 0x00, IPT_POSITIONAL ) PORT_POSITIONS(10) PORT_WRAPS PORT_SENSITIVITY(10) PORT_KEYDELTA(1) PORT_CODE_DEC(KEYCODE_Z) PORT_CODE_INC(KEYCODE_X) PORT_PLAYER(1) PORT_INVERT PORT_FULL_TURN_COUNT(10)
@@ -2080,7 +2080,7 @@ static INPUT_PORTS_START( aceattac )
 	PORT_BIT( 0xfff, 0x00, IPT_TRACKBALL_Y ) PORT_SENSITIVITY(100) PORT_KEYDELTA(30) PORT_PLAYER(TMP_PL2BALL)
 
 	PORT_START("HANDY2") // power of "hand" device
-	PORT_BIT( 0x07, 0x04, IPT_PEDAL2 ) PORT_SENSITIVITY(100) PORT_KEYDELTA(1) PORT_CENTERDELTA(2) PORT_PLAYER(TMP_PL2HAND) PORT_CHANGED_MEMBER(DEVICE_SELF, segas16b_state, handy_w, 1)
+	PORT_BIT( 0x07, 0x04, IPT_PEDAL2 ) PORT_SENSITIVITY(100) PORT_KEYDELTA(1) PORT_CENTERDELTA(2) PORT_PLAYER(TMP_PL2HAND) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(segas16b_state::handy_w), 1)
 
 	PORT_START("DIAL2") // toss formation
 	PORT_BIT( 0x0f, 0x00, IPT_POSITIONAL ) PORT_POSITIONS(10) PORT_WRAPS PORT_SENSITIVITY(10) PORT_KEYDELTA(1) PORT_CODE_DEC(KEYCODE_N) PORT_CODE_INC(KEYCODE_M) PORT_PLAYER(2) PORT_INVERT PORT_FULL_TURN_COUNT(10)
@@ -2172,7 +2172,7 @@ static INPUT_PORTS_START( afighter )
 INPUT_PORTS_END
 
 /* this is identical to the s16a implementation, maybe should be moved to common class */
-CUSTOM_INPUT_MEMBER(afighter_16b_analog_state::afighter_accel_r)
+ioport_value afighter_16b_analog_state::afighter_accel_r()
 {
 	int accel = m_accel->read();
 
@@ -2187,7 +2187,7 @@ CUSTOM_INPUT_MEMBER(afighter_16b_analog_state::afighter_accel_r)
 	return 0;
 }
 
-CUSTOM_INPUT_MEMBER(afighter_16b_analog_state::afighter_handl_left_r)
+ioport_value afighter_16b_analog_state::afighter_handl_left_r()
 {
 	int steer = m_steer->read();
 
@@ -2205,7 +2205,7 @@ CUSTOM_INPUT_MEMBER(afighter_16b_analog_state::afighter_handl_left_r)
 	return 0x00;
 }
 
-CUSTOM_INPUT_MEMBER(afighter_16b_analog_state::afighter_handl_right_r)
+ioport_value afighter_16b_analog_state::afighter_handl_right_r()
 {
 	int steer = m_steer->read();
 
@@ -2228,7 +2228,7 @@ static INPUT_PORTS_START( afighter_analog )
 	PORT_INCLUDE( afighter )
 
 	PORT_MODIFY("P1")
-	PORT_BIT( 0x07, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(afighter_16b_analog_state, afighter_accel_r)
+	PORT_BIT( 0x07, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(afighter_16b_analog_state::afighter_accel_r))
 	PORT_BIT( 0x08, IP_ACTIVE_LOW, IPT_UNUSED )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_BUTTON1 ) // SHOT
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_BUTTON2 ) // WEAPON1
@@ -2236,10 +2236,10 @@ static INPUT_PORTS_START( afighter_analog )
 	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_BUTTON4 ) // WEAPON3
 
 	PORT_MODIFY("P2")
-	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(afighter_16b_analog_state, afighter_handl_left_r)
+	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(afighter_16b_analog_state::afighter_handl_left_r))
 
 	PORT_MODIFY("UNUSED")
-	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(afighter_16b_analog_state, afighter_handl_right_r)
+	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_CUSTOM_MEMBER(FUNC(afighter_16b_analog_state::afighter_handl_right_r))
 
 	PORT_START("STEER")  // steering
 	PORT_BIT( 0xff, 0x00, IPT_PADDLE ) PORT_SENSITIVITY(100) PORT_KEYDELTA(4)
@@ -9084,12 +9084,12 @@ ROM_END
 //
 ROM_START( timescan3 )
 	ROM_REGION( 0x30000, "maincpu", 0 ) // 68000 code
-	ROM_LOAD16_BYTE( "epr-10559.a4", 0x00000, 0x8000, CRC(7be282cfb) SHA1(e95a3e9edf5a5db10197fa4f8e0cdf8ed2da5071) )
-	ROM_LOAD16_BYTE( "epr-10556.a1", 0x00001, 0x8000, CRC(f8bc7db82) SHA1(efa6ecb9b377e6def2e24c450014db13f00a1297) )
-	ROM_LOAD16_BYTE( "epr-10560.a5", 0x10000, 0x8000, CRC(f4c38aa17) SHA1(d5b35e6343f342de5cf45c0c1569927b68ad5818) )
-	ROM_LOAD16_BYTE( "epr-10557.a2", 0x10001, 0x8000, CRC(cbf8dbeab) SHA1(5caa36be75f3cfedbeb814d1e570ad15157478ec) )
-	ROM_LOAD16_BYTE( "epr-10561.a6", 0x20000, 0x8000, CRC(cb45981f3) SHA1(17e950cf5e108c34d6cdb25d7c182bc0575f770e) )
-	ROM_LOAD16_BYTE( "epr-10558.a3", 0x20001, 0x8000, CRC(d63c8eb7b) SHA1(233b05cf24d675193ed11ef75a26af231dc8c13f) )
+	ROM_LOAD16_BYTE( "epr-10559.a4", 0x00000, 0x8000, CRC(7be282cf) SHA1(e95a3e9edf5a5db10197fa4f8e0cdf8ed2da5071) )
+	ROM_LOAD16_BYTE( "epr-10556.a1", 0x00001, 0x8000, CRC(f8bc7db8) SHA1(efa6ecb9b377e6def2e24c450014db13f00a1297) )
+	ROM_LOAD16_BYTE( "epr-10560.a5", 0x10000, 0x8000, CRC(f4c38aa1) SHA1(d5b35e6343f342de5cf45c0c1569927b68ad5818) )
+	ROM_LOAD16_BYTE( "epr-10557.a2", 0x10001, 0x8000, CRC(cbf8dbea) SHA1(5caa36be75f3cfedbeb814d1e570ad15157478ec) )
+	ROM_LOAD16_BYTE( "epr-10561.a6", 0x20000, 0x8000, CRC(cb45981f) SHA1(17e950cf5e108c34d6cdb25d7c182bc0575f770e) )
+	ROM_LOAD16_BYTE( "epr-10558.a3", 0x20001, 0x8000, CRC(d63c8eb7) SHA1(233b05cf24d675193ed11ef75a26af231dc8c13f) )
 
 	ROM_REGION( 0x18000, "gfx1", 0 ) // tiles
 	ROM_LOAD( "epr-10543.b9",  0x00000, 0x8000, CRC(07dccc37) SHA1(544cc6a3b3ef64727ecf5098b84ade2dd5330614) )

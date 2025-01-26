@@ -14,7 +14,7 @@ BMC Bowling (c) 1994.05 BMC, Ltd
  press START(1) OR BUTTON1 to start game , also START(1) or BUTTON1 to bowl / start
         ( 5 to insert coin(s) , B to bet , D to pay out (?)  etc...)
 
- press ANALIZER(0) durning boot to enter test menu, then :
+ press ANALIZER(0) during boot to enter test menu, then :
             STOP1+STOP2 - sound test menu
         BIG(G) - cycle options ,
         DOUBLE(H) - play
@@ -135,8 +135,8 @@ public:
 	void bmcbowl(machine_config &config);
 
 private:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 	uint8_t random_read();
 	uint16_t protection_r();
@@ -149,8 +149,8 @@ private:
 	void int_ack_w(uint8_t data);
 	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 	void init_stats(const uint8_t *table, int table_len, int address);
-	void main_mem(address_map &map);
-	void ramdac_map(address_map &map);
+	void main_mem(address_map &map) ATTR_COLD;
+	void ramdac_map(address_map &map) ATTR_COLD;
 
 	required_device<cpu_device> m_maincpu;
 	required_shared_ptr<uint16_t> m_stats_ram;
@@ -438,7 +438,7 @@ static INPUT_PORTS_START( bmcbowl )
 	PORT_START("IN3")
 	PORT_BIT( 0x10, IP_ACTIVE_LOW, IPT_COIN2 ) PORT_IMPULSE(1)
 	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_COIN1 ) PORT_IMPULSE(1)
-	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x80, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 
 INPUT_PORTS_END
 

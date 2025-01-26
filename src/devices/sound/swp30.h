@@ -3,8 +3,8 @@
 
 // Yamaha SWP30/30B, rompler/dsp combo
 
-#ifndef DEVICES_SOUND_SWP30_H
-#define DEVICES_SOUND_SWP30_H
+#ifndef MAME_SOUND_SWP30_H
+#define MAME_SOUND_SWP30_H
 
 #pragma once
 
@@ -13,17 +13,18 @@
 class swp30_device : public cpu_device, public device_sound_interface, public swp30_disassembler::info
 {
 public:
+	enum { AS_REVERB = AS_IO };
+
 	swp30_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock = 33868800);
 
-	void map(address_map &map);
+	void map(address_map &map) ATTR_COLD;
 
 protected:
-	virtual void device_start() override;
-	virtual void device_reset() override;
+	virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
 	virtual void sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs) override;
 	virtual uint32_t execute_min_cycles() const noexcept override;
 	virtual uint32_t execute_max_cycles() const noexcept override;
-	virtual uint32_t execute_input_lines() const noexcept override;
 	virtual uint64_t execute_clocks_to_cycles(uint64_t clocks) const noexcept override { return (clocks + 1) / 2; }
 	virtual void execute_run() override;
 	virtual space_config_vector memory_space_config() const override;
@@ -46,15 +47,17 @@ private:
 		std::array<u16, 3> route;
 	};
 
-	address_space_config m_program_config, m_rom_config;
-	address_space *m_program, *m_rom;
+	address_space_config m_program_config, m_rom_config, m_reverb_config;
+	address_space *m_program, *m_rom, *m_reverb;
 	memory_access<25, 2, -2, ENDIANNESS_LITTLE>::cache m_rom_cache;
+	memory_access<18, 1, -1, ENDIANNESS_LITTLE>::cache m_reverb_cache;
 
 	sound_stream *m_stream;
 
 	static const std::array<s32, 0x80> attack_linear_step;
 	static const std::array<s32, 0x20> decay_linear_step;
 	static const std::array<s32, 16> panmap;
+	static const std::array<u32, 0x400> pitch_base;
 	std::array<s32,  0x80> m_global_step;
 	std::array<s16, 0x100> m_dpcm;
 
@@ -62,6 +65,7 @@ private:
 	static const std::array<u32, 4> lfo_shape_centered_tri;
 	static const std::array<u32, 4> lfo_shape_offset_saw;
 	static const std::array<u32, 4> lfo_shape_offset_tri;
+	static const std::array<u8,  4> dpcm_offset;
 
 	std::array<s32,  0x40> m_sample_start;
 	std::array<s32,  0x40> m_sample_end;
@@ -88,6 +92,7 @@ private:
 	std::array<s16,  0x40> m_dpcm_current;
 	std::array<s16,  0x40> m_dpcm_next;
 	std::array<u32,  0x40> m_dpcm_address;
+	std::array<s32,  0x40> m_dpcm_sum;
 
 	std::array<u64, 0x180> m_meg_program;
 	std::array<s16, 0x180> m_meg_const;
@@ -210,8 +215,10 @@ private:
 	template<int sel> u16 meg_lfo_r(offs_t offset);
 	template<int sel> void meg_lfo_w(offs_t offset, u16 data);
 
-	void meg_prg_map(address_map &map);
+	void meg_prg_map(address_map &map) ATTR_COLD;
 	u64 meg_prg_map_r(offs_t address);
+
+	void meg_reverb_map(address_map &map) ATTR_COLD;
 
 	virtual u16 swp30d_const_r(u16 address) const override;
 	virtual u16 swp30d_offset_r(u16 address) const override;
@@ -232,4 +239,4 @@ private:
 
 DECLARE_DEVICE_TYPE(SWP30, swp30_device)
 
-#endif
+#endif // MAME_SOUND_SWP30_H

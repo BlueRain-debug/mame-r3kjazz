@@ -74,7 +74,7 @@ public:
 	void atm18mcc(machine_config &config);
 
 protected:
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 
 private:
 	// devices/pointers
@@ -83,9 +83,13 @@ private:
 	optional_device<hd44780_device> m_lcd;
 	required_ioport_array<4> m_inputs;
 
+	u8 m_inp_mux = 0;
+	u8 m_shift_reg = 0;
+	int m_shift_clk = 0;
+
 	// address maps
-	void main_map(address_map &map);
-	void data_map(address_map &map);
+	void main_map(address_map &map) ATTR_COLD;
+	void data_map(address_map &map) ATTR_COLD;
 
 	// I/O handlers
 	void input_w(u8 data);
@@ -95,10 +99,6 @@ private:
 	void lcd_w(u8 data);
 
 	u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
-
-	u8 m_inp_mux = 0;
-	u8 m_shift_reg = 0;
-	int m_shift_clk = 0;
 };
 
 void avrmax_state::machine_start()
@@ -263,7 +263,7 @@ void avrmax_state::avrmax(machine_config &config)
 	base(config);
 
 	// basic machine hardware
-	m_maincpu->set_clock(8000000); // internal R/C clock
+	m_maincpu->set_clock(8'000'000); // internal R/C clock
 	m_maincpu->gpio_out<atmega88_device::GPIOC>().set(FUNC(avrmax_state::digit_w));
 	m_maincpu->gpio_out<atmega88_device::GPIOD>().set(FUNC(avrmax_state::segment_w));
 
@@ -287,7 +287,11 @@ void avrmax_state::atm18mcc(machine_config &config)
 	screen.set_visarea_full();
 	screen.set_screen_update(FUNC(avrmax_state::screen_update));
 
-	HD44780(config, m_lcd, 0);
+	HD44780U(config, m_lcd, 270'000); // TODO: clock not measured, datasheet typical clock used
+	// HD44780UA02 is required for certain international characters in cc2schach,
+	// the English version can optionally use a more standard HD44780[U]A00 display
+	m_lcd->set_default_bios_tag("a02");
+
 	config.set_default_layout(layout_atm18mcc);
 }
 
@@ -366,8 +370,8 @@ ROM_END
 *******************************************************************************/
 
 //    YEAR  NAME       PARENT    COMPAT  MACHINE   INPUT   CLASS         INIT        COMPANY, FULLNAME, FLAGS
-SYST( 2009, avrmax,    0,        0,      avrmax,   avrmax, avrmax_state, empty_init, "Elektor", "AVR-Max Chess Computer (English)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK | MACHINE_NO_SOUND_HW )
-SYST( 2009, avrmaxg,   avrmax,   0,      avrmax,   avrmax, avrmax_state, empty_init, "Elektor", "AVR-Max-Schachzwerg (German)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK | MACHINE_NO_SOUND_HW ) // German 'text'
+SYST( 2009, avrmax,    0,        0,      avrmax,   avrmax, avrmax_state, empty_init, "Elektor", "AVR-Max Chess Computer (English)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_SOUND_HW )
+SYST( 2009, avrmaxg,   avrmax,   0,      avrmax,   avrmax, avrmax_state, empty_init, "Elektor", "AVR-Max-Schachzwerg (German)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_SOUND_HW ) // German 'text'
 
-SYST( 2009, atm18mcc,  0,        0,      atm18mcc, avrmax, avrmax_state, empty_init, "Elektor", "ATM18 Mini Chess Computer (English)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK | MACHINE_NO_SOUND_HW )
-SYST( 2009, cc2schach, atm18mcc, 0,      atm18mcc, avrmax, avrmax_state, empty_init, "Elektor", "CC2-Schachzwerg (German)", MACHINE_SUPPORTS_SAVE | MACHINE_CLICKABLE_ARTWORK | MACHINE_NO_SOUND_HW )
+SYST( 2009, atm18mcc,  0,        0,      atm18mcc, avrmax, avrmax_state, empty_init, "Elektor", "ATM18 Mini Chess Computer (English)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_SOUND_HW )
+SYST( 2009, cc2schach, atm18mcc, 0,      atm18mcc, avrmax, avrmax_state, empty_init, "Elektor", "CC2-Schachzwerg (German)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_SOUND_HW )

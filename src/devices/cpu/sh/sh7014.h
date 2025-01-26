@@ -19,10 +19,10 @@
 #include "sh7014_port.h"
 #include "sh7014_sci.h"
 
-class sh2_sh7014_device : public sh2_device
+class sh7014_device : public sh2_device
 {
 public:
-	sh2_sh7014_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	sh7014_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
 	template<int Sci> auto sci_tx_w() {
 		return m_sci[Sci].lookup()->write_sci_tx();
@@ -48,16 +48,16 @@ public:
 	auto read_portf()  { return m_port.lookup()->port_f_read_callback(); }
 
 protected:
-	virtual void device_start() override;
-	virtual void device_reset() override;
-	virtual void device_add_mconfig(machine_config &config) override;
+	virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
 	virtual void execute_set_input(int inputnum, int state) override;
 
 	virtual void sh2_exception_internal(const char *message, int irqline, int vector) override;
 
 private:
-	void sh7014_map(address_map &map);
+	void sh7014_map(address_map &map) ATTR_COLD;
 
 	void set_irq(int vector, int level, bool is_internal);
 
@@ -78,6 +78,6 @@ private:
 	uint16_t m_ccr;
 };
 
-DECLARE_DEVICE_TYPE(SH2_SH7014,  sh2_sh7014_device)
+DECLARE_DEVICE_TYPE(SH7014,  sh7014_device)
 
 #endif // MAME_CPU_SH_SH7014_H

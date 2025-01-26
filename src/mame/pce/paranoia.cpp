@@ -68,12 +68,12 @@ private:
 	void i8155_b_w(uint8_t data);
 	void i8155_c_w(uint8_t data);
 	void i8155_timer_out(int state);
-	void paranoia_8085_io_map(address_map &map);
-	void paranoia_8085_map(address_map &map);
-	void paranoia_z80_io_map(address_map &map);
-	void paranoia_z80_map(address_map &map);
-	void pce_io(address_map &map);
-	void pce_mem(address_map &map);
+	void paranoia_8085_io_map(address_map &map) ATTR_COLD;
+	void paranoia_8085_map(address_map &map) ATTR_COLD;
+	void paranoia_z80_io_map(address_map &map) ATTR_COLD;
+	void paranoia_z80_map(address_map &map) ATTR_COLD;
+	void pce_io(address_map &map) ATTR_COLD;
+	void pce_mem(address_map &map) ATTR_COLD;
 };
 
 
@@ -231,4 +231,4 @@ ROM_END
 } // anonymous namespace
 
 
-GAME( 1990, paranoia, 0, paranoia, paranoia, paranoia_state, init_pce_common, ROT0, "Naxat Soft", "Paranoia", MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE )
+GAME( 1990, paranoia, 0, paranoia, paranoia, paranoia_state, init_pce_common, ROT0, "Naxat Soft", "Paranoia (Arcade PC Engine, bootleg?)", MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // Based off PCE not TG16, cfr. stage clear screen

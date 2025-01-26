@@ -74,7 +74,7 @@ public:
 	void canyon(machine_config &config);
 
 protected:
-	virtual void video_start() override;
+	virtual void video_start() override ATTR_COLD;
 
 private:
 	// memory pointers
@@ -105,11 +105,9 @@ private:
 	void explode_w(uint8_t data);
 	void draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void draw_bombs(bitmap_ind16 &bitmap, const rectangle &cliprect);
-	void main_map(address_map &map);
+	void main_map(address_map &map) ATTR_COLD;
 };
 
-
-// audio
 
 /*************************************
  *
@@ -128,8 +126,6 @@ void canyon_state::explode_w(uint8_t data)
 	m_discrete->write(CANYON_EXPLODE_DATA, data >> 4);
 }
 
-
-// video
 
 void canyon_state::videoram_w(offs_t offset, uint8_t data)
 {
@@ -200,8 +196,6 @@ uint32_t canyon_state::screen_update(screen_device &screen, bitmap_ind16 &bitmap
 	return 0;
 }
 
-
-// machine
 
 /*************************************
  *
@@ -321,7 +315,7 @@ static INPUT_PORTS_START( canyon )
 	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_START1 )
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_START2 )
 	PORT_SERVICE( 0x10, IP_ACTIVE_HIGH )
-	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x20, IP_ACTIVE_LOW, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))
 	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_BUTTON7 ) PORT_NAME("Hiscore Reset") PORT_CODE(KEYCODE_H)
 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_TILT ) /* SLAM */
 

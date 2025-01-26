@@ -77,7 +77,7 @@ void _1943_state::c1943_map(address_map &map)
 	map(0xc004, 0xc004).portr("DSWB");
 	map(0xc007, 0xc007).lr8(NAME([this] () -> u8 { return m_mcu_to_cpu; }));
 	map(0xc800, 0xc800).w("soundlatch", FUNC(generic_latch_8_device::write));
-	map(0xc804, 0xc804).w(FUNC(_1943_state::c804_w)); // ROM bank switch, screen flip
+	map(0xc804, 0xc804).w(FUNC(_1943_state::control_w)); // ROM bank switch, screen flip
 	map(0xc806, 0xc806).w("watchdog", FUNC(watchdog_timer_device::reset_w));
 	map(0xc807, 0xc807).lw8(NAME([this] (u8 data) { m_cpu_to_mcu = data; }));
 	map(0xd000, 0xd3ff).ram().w(FUNC(_1943_state::videoram_w)).share("videoram");
@@ -85,7 +85,7 @@ void _1943_state::c1943_map(address_map &map)
 	map(0xd800, 0xd801).ram().share("scrollx");
 	map(0xd802, 0xd802).ram().share("scrolly");
 	map(0xd803, 0xd804).ram().share("bgscrollx");
-	map(0xd806, 0xd806).w(FUNC(_1943_state::d806_w)); // sprites, bg1, bg2 enable
+	map(0xd806, 0xd806).w(FUNC(_1943_state::layer_w)); // sprites, bg1, bg2 enable
 	map(0xd808, 0xd808).nopw(); // ???
 	map(0xd868, 0xd868).nopw(); // ???
 	map(0xd888, 0xd888).nopw(); // ???
@@ -113,6 +113,7 @@ void _1943_state::sound_map(address_map &map)
 	map(0xe000, 0xe001).w("ym1", FUNC(ym2203_device::write));
 	map(0xe002, 0xe003).w("ym2", FUNC(ym2203_device::write));
 }
+
 
 /* Input Ports */
 
@@ -165,9 +166,9 @@ static INPUT_PORTS_START( 1943 )
 	PORT_DIPNAME( 0x10, 0x10, "2 Player Game" )             PORT_DIPLOCATION("SWA:4")
 	PORT_DIPSETTING(    0x00, "1 Credit/2 Players" )
 	PORT_DIPSETTING(    0x10, "2 Credits/2 Players" )
-	PORT_DIPNAME( 0x20, 0x20, DEF_STR( Cabinet ) )          PORT_DIPLOCATION("SWA:3")
-	PORT_DIPSETTING(    0x20, DEF_STR( Upright ))
-	PORT_DIPSETTING(    0x00, DEF_STR( Cocktail ))
+	PORT_DIPNAME( 0x20, 0x20, DEF_STR( Flip_Screen ) )      PORT_DIPLOCATION("SWA:3")
+	PORT_DIPSETTING(    0x20, DEF_STR( Off ))
+	PORT_DIPSETTING(    0x00, DEF_STR( On ))
 	PORT_DIPNAME( 0x40, 0x40, "Screen Stop" )               PORT_DIPLOCATION("SWA:2")
 	PORT_DIPSETTING(    0x40, DEF_STR( Off ))
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
@@ -199,6 +200,7 @@ static INPUT_PORTS_START( 1943 )
 	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x80, DEF_STR( On ) )
 INPUT_PORTS_END
+
 
 /* Graphics Layouts */
 
@@ -262,8 +264,8 @@ void _1943_state::machine_start()
 void _1943_state::machine_reset()
 {
 	// these latches are cleared at RESET
-	c804_w(0);
-	d806_w(0);
+	control_w(0);
+	layer_w(0);
 }
 
 void _1943_state::_1943(machine_config &config)
@@ -289,7 +291,7 @@ void _1943_state::_1943(machine_config &config)
 
 	// video hardware
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_raw(XTAL(24'000'000)/4, 384, 128, 0, 262, 22, 246);   // hsync is 50..77, vsync is 257..259
+	m_screen->set_raw(XTAL(24'000'000)/4, 384, 128, 0, 262, 22, 246); // hsync is 50..77, vsync is 257..259
 	m_screen->set_screen_update(FUNC(_1943_state::screen_update));
 	m_screen->set_palette(m_palette);
 	m_screen->screen_vblank().set_inputline(m_mcu, MCS51_INT1_LINE);
@@ -324,6 +326,7 @@ void _1943_state::_1943b(machine_config &config)
 
 	config.device_remove("mcu");
 }
+
 
 /* ROMs */
 
@@ -912,13 +915,15 @@ void _1943_state::init_1943()
 
 
 /* Game Drivers */
-GAME( 1987, 1943,    0,    _1943,  1943, _1943_state, init_1943, ROT270, "Capcom",  "1943: The Battle of Midway (Euro)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943u,   1943, _1943,  1943, _1943_state, init_1943, ROT270, "Capcom",  "1943: The Battle of Midway (US, Rev C)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943ua,  1943, _1943,  1943, _1943_state, init_1943, ROT270, "Capcom",  "1943: The Battle of Midway (US)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943j,   1943, _1943,  1943, _1943_state, init_1943, ROT270, "Capcom",  "1943: Midway Kaisen (Japan, Rev B)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943ja,  1943, _1943,  1943, _1943_state, init_1943, ROT270, "Capcom",  "1943: Midway Kaisen (Japan)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943jah, 1943, _1943,  1943, _1943_state, init_1943, ROT270, "Capcom",  "1943: Midway Kaisen (Japan, no protection hack)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943b,   1943, _1943b, 1943, _1943_state, init_1943, ROT270, "bootleg", "1943: Battle of Midway (bootleg, hack of Japan set)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943bj,  1943, _1943b, 1943, _1943_state, init_1943, ROT270, "bootleg", "1943: Midway Kaisen (bootleg)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943kai, 0,    _1943,  1943, _1943_state, init_1943, ROT270, "Capcom",  "1943 Kai: Midway Kaisen (Japan)", MACHINE_SUPPORTS_SAVE )
-GAME( 1987, 1943mii, 0,    _1943,  1943, _1943_state, init_1943, ROT270, "Capcom",  "1943: The Battle of Midway Mark II (US)", MACHINE_SUPPORTS_SAVE )
+
+//    YEAR  NAME     PARENT  MACHINE  INPUT  CLASS        INIT       ROT     COMPANY    FULLNAME, FLAGS
+GAME( 1987, 1943,    0,      _1943,   1943,  _1943_state, init_1943, ROT270, "Capcom",  "1943: The Battle of Midway (Euro)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943u,   1943,   _1943,   1943,  _1943_state, init_1943, ROT270, "Capcom",  "1943: The Battle of Midway (US, Rev C)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943ua,  1943,   _1943,   1943,  _1943_state, init_1943, ROT270, "Capcom",  "1943: The Battle of Midway (US)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943j,   1943,   _1943,   1943,  _1943_state, init_1943, ROT270, "Capcom",  "1943: Midway Kaisen (Japan, Rev B)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943ja,  1943,   _1943,   1943,  _1943_state, init_1943, ROT270, "Capcom",  "1943: Midway Kaisen (Japan)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943jah, 1943,   _1943,   1943,  _1943_state, init_1943, ROT270, "Capcom",  "1943: Midway Kaisen (Japan, no protection hack)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943b,   1943,   _1943b,  1943,  _1943_state, init_1943, ROT270, "bootleg", "1943: Battle of Midway (bootleg, hack of Japan set)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943bj,  1943,   _1943b,  1943,  _1943_state, init_1943, ROT270, "bootleg", "1943: Midway Kaisen (bootleg)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943kai, 0,      _1943,   1943,  _1943_state, init_1943, ROT270, "Capcom",  "1943 Kai: Midway Kaisen (Japan)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943mii, 0,      _1943,   1943,  _1943_state, init_1943, ROT270, "Capcom",  "1943: The Battle of Midway Mark II (US)", MACHINE_SUPPORTS_SAVE )

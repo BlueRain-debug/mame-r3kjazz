@@ -61,7 +61,7 @@ GD build date
 |*| 2006     | Sega Network Taisen Mahjong MJ 3 (Rev F)             | Sega                     | GDROM  | GDX-0017F  | 317-0414-JPN |
 | | 2005     | Sega Club Golf 2006: Next Tours                      | Sega                     | GDROM  | GDX-0018   |              |
 |*| 20051107 | Sega Club Golf 2006: Next Tours (Rev A)              | Sega                     | GDROM  | GDX-0018A  | 317-0428-JPN |
-| | 2005     | Firmware Update For MJ 3                             | Sega                     | GDROM  | GDX-0019   |              |
+|*| 20050905 | Firmware Update For MJ 3                             | Sega                     | GDROM  | GDX-0019   | 317-0414-JPN |
 | | 200?     | Sega Club Golf 2006                                  | Sega                     | GDROM  | GDX-0020   |              |
 | | 2006     | Sega Network Taisen Mahjong MJ 3 Evolution           | Sega                     | GDROM  | GDX-0021   | 317-0457-JPN |
 |*| 20070217 | Sega Network Taisen Mahjong MJ 3 Evolution (Rev A)   | Sega                     | GDROM  | GDX-0021A  | 317-0457-JPN |
@@ -527,7 +527,7 @@ public:
 	void set_region(const char *_region_tag, int _region_offset);
 
 protected:
-	virtual void device_start() override;
+	virtual void device_start() override ATTR_COLD;
 private:
 	void process_jvs_packet();
 
@@ -585,7 +585,7 @@ public:
 	void set_region(const char *_region_tag, int _region_offset);
 
 protected:
-	virtual void device_start() override;
+	virtual void device_start() override ATTR_COLD;
 private:
 	void process_packet();
 
@@ -641,7 +641,7 @@ private:
 	uint32_t mediaboard_r(offs_t offset, uint32_t mem_mask = ~0);
 	void mediaboard_w(offs_t offset, uint32_t data, uint32_t mem_mask = ~0);
 
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 	void baseboard_ide_event(int type, uint8_t *read, uint8_t *write);
 	uint8_t *baseboard_ide_dimmboard(uint32_t lba);
 	void dword_write_le(uint8_t *addr, uint32_t d);
@@ -660,8 +660,8 @@ private:
 
 	static void an2131qc_configuration(device_t *device);
 	static void an2131sc_configuration(device_t *device);
-	void chihiro_map(address_map &map);
-	void chihiro_map_io(address_map &map);
+	void chihiro_map(address_map &map) ATTR_COLD;
+	void chihiro_map_io(address_map &map) ATTR_COLD;
 
 	void jamtable_disasm(address_space &space, uint32_t address, uint32_t size);
 	void jamtable_disasm_command(const std::vector<std::string_view> &params);
@@ -1532,8 +1532,8 @@ public:
 
 protected:
 	// device_t implementation
-	virtual void device_start() override;
-	virtual void device_reset() override;
+	virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
 
 	uint8_t read_buffer[0x20]{};
 	uint8_t write_buffer[0x20]{};
@@ -1779,7 +1779,7 @@ void chihiro_state::chihiro_map_io(address_map &map)
 	map(0x4000, 0x40ff).rw(FUNC(chihiro_state::mediaboard_r), FUNC(chihiro_state::mediaboard_w));
 }
 
-static INPUT_PORTS_START(chihiro)
+static INPUT_PORTS_START( chihiro )
 	PORT_START("TILT")
 	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_TILT)
 	PORT_BIT(0x7f, IP_ACTIVE_HIGH, IPT_UNUSED)
@@ -1836,7 +1836,7 @@ static INPUT_PORTS_START(chihiro)
 
 	PORT_START("A7")
 	PORT_BIT(0x87ff, IP_ACTIVE_LOW, IPT_UNUSED)
-	INPUT_PORTS_END
+INPUT_PORTS_END
 
 void chihiro_state::machine_start()
 {
@@ -1866,10 +1866,10 @@ class sega_network_board : public device_t
 public:
 	sega_network_board(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
-	virtual const tiny_rom_entry *device_rom_region() const override;
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 
 protected:
-	virtual void device_start() override;
+	virtual void device_start() override ATTR_COLD;
 };
 
 DEFINE_DEVICE_TYPE(SEGA_NETWORK_BOARD, sega_network_board, "seganetw", "Sega Network Board")
@@ -2350,6 +2350,16 @@ ROM_START( mj3 )
 	ROM_LOAD( "317-0414-jpn.pic", 0x000000, 0x004000, CRC(27d1c541) SHA1(c85a8229dd769af02ab43c97f09f995743cdb315) )
 ROM_END
 
+ROM_START( mj3up )
+	CHIHIRO_BIOS
+
+	DISK_REGION( "gdrom" )
+	DISK_IMAGE_READONLY( "gdx-0019", 0, SHA1(39ac33e857a6f66814c8fc5487705dbf43d47888) )
+
+	ROM_REGION( 0x4000, "pic", ROMREGION_ERASEFF)
+	ROM_LOAD( "317-0414-jpn.pic", 0x000000, 0x004000, CRC(27d1c541) SHA1(c85a8229dd769af02ab43c97f09f995743cdb315) )
+ROM_END
+
 ROM_START( scg06nt )
 	CHIHIRO_BIOS
 
@@ -2633,7 +2643,7 @@ ROM_END
 /* 0017F */ GAME( 2006, mj3,      chihiro,  chihirogd,    chihiro, chihiro_state, empty_init, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 3 (Rev F) (GDX-0017F)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0018     GAME( 2005, scg06nto, scg06nt,  chihirogd,    chihiro, chihiro_state, empty_init, ROT0, "Sega",                     "Sega Club Golf 2006 Next Tours (GDX-0018)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 /* 0018A */ GAME( 2005, scg06nt,  chihiro,  chihirogd,    chihiro, chihiro_state, empty_init, ROT0, "Sega",                     "Sega Club Golf 2006 Next Tours (Rev A) (GDX-0018A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
-// 0019  Firmware Update For MJ 3
+/* 0019  */ GAME( 2005, mj3up,    chihiro,  chihirogd,    chihiro, chihiro_state, empty_init, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 3 Firmware Update (GDX-0019)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 // 0020  Sega Golf Club 2006
 // 0021     GAME( 2006, mj3evoo,  mj3evo,    chihirogd,   chihiro, chihiro_state, empty_init, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 3 Evolution (GDX-0021)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )
 /* 0021A */ GAME( 2007, mj3evoa,  mj3evo,    chihirogd,   chihiro, chihiro_state, empty_init, ROT0, "Sega",                     "Sega Network Taisen Mahjong MJ 3 Evolution (Rev A) (GDX-0021A)", MACHINE_NO_SOUND|MACHINE_NOT_WORKING )

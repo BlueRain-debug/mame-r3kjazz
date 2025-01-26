@@ -234,7 +234,7 @@ public:
 	void ppc512(machine_config &config);
 
 protected:
-	virtual void machine_start() override;
+	virtual void machine_start() override ATTR_COLD;
 
 private:
 	required_device<cpu_device> m_maincpu;
@@ -273,10 +273,10 @@ private:
 	static void cfg_com(device_t *device);
 	static void cfg_fdc(device_t *device);
 
-	void pc200_io(address_map &map);
-	void pc2086_map(address_map &map);
-	void ppc512_io(address_map &map);
-	void ppc640_map(address_map &map);
+	void pc200_io(address_map &map) ATTR_COLD;
+	void pc2086_map(address_map &map) ATTR_COLD;
+	void ppc512_io(address_map &map) ATTR_COLD;
+	void ppc640_map(address_map &map) ATTR_COLD;
 };
 
 void amstrad_pc_state::ppc640_map(address_map &map)
@@ -602,7 +602,7 @@ static INPUT_PORTS_START( pc200 ) // TODO: PPC512/PPC640 DSW differ, see readme 
 	PORT_DIPNAME( 0x07, 0x07, "Name/Language")
 	PORT_DIPSETTING(    0x00, "English/less checks" )
 	PORT_DIPSETTING(    0x01, DEF_STR( Italian ) ) //prego attendere
-	PORT_DIPSETTING(    0x02, "V.g. v\xC3\xA4nta" )
+	PORT_DIPSETTING(    0x02, u8"V.g. vänta" )
 	PORT_DIPSETTING(    0x03, "Vent et cjeblik" ) // seldom c
 	PORT_DIPSETTING(    0x04, DEF_STR( Spanish ) ) //Por favor
 	PORT_DIPSETTING(    0x05, DEF_STR( French ) ) //patientez

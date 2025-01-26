@@ -382,7 +382,7 @@ static INPUT_PORTS_START( mlc )
 	PORT_BIT( 0x00100000, IP_ACTIVE_LOW, IPT_COIN3 )
 	PORT_BIT( 0x00200000, IP_ACTIVE_LOW, IPT_COIN4 )
 	PORT_BIT( 0x00400000, IP_ACTIVE_LOW, IPT_SERVICE2 )
-	PORT_BIT( 0x00800000, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("eeprom", eeprom_serial_93cxx_device, do_read)
+	PORT_BIT( 0x00800000, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("eeprom", FUNC(eeprom_serial_93cxx_device::do_read))
 	PORT_BIT( 0x01000000, IP_ACTIVE_LOW, IPT_BUTTON4 ) PORT_PLAYER(1)
 	PORT_BIT( 0x02000000, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x04000000, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -539,7 +539,7 @@ void deco_mlc_state::machine_reset()
 void deco_mlc_state::avengrgs(machine_config &config)
 {
 	// basic machine hardware
-	SH2_SH7604(config, m_maincpu, 42000000/2); // 21 MHz clock confirmed on real board
+	SH7604(config, m_maincpu, 42000000/2); // 21 MHz clock confirmed on real board
 	m_maincpu->set_addrmap(AS_PROGRAM, &deco_mlc_state::avengrgs_map);
 
 	EEPROM_93C46_16BIT(config, m_eeprom); // Actually 93c45
@@ -1036,16 +1036,16 @@ u32 deco_mlc_state::avengrgs_speedup_r()
 void deco_mlc_state::init_avengrgs()
 {
 	// init options
-	dynamic_cast<sh2_sh7604_device *>(m_maincpu.target())->sh2drc_set_options(SH2DRC_FASTEST_OPTIONS);
+	dynamic_cast<sh7604_device *>(m_maincpu.target())->sh2drc_set_options(SH2DRC_FASTEST_OPTIONS);
 
 	// set up speed cheat
-	dynamic_cast<sh2_sh7604_device *>(m_maincpu.target())->sh2drc_add_pcflush(0x3234);
-	dynamic_cast<sh2_sh7604_device *>(m_maincpu.target())->sh2drc_add_pcflush(0x32dc);
+	dynamic_cast<sh7604_device *>(m_maincpu.target())->sh2drc_add_pcflush(0x3234);
+	dynamic_cast<sh7604_device *>(m_maincpu.target())->sh2drc_add_pcflush(0x32dc);
 
-	dynamic_cast<sh2_sh7604_device *>(m_maincpu.target())->sh2drc_add_fastram(0x0100000, 0x01088ff, 0, &m_mainram[0]);
-	dynamic_cast<sh2_sh7604_device *>(m_maincpu.target())->sh2drc_add_fastram(0x0108a00, 0x011ffff, 0, &m_mainram[0x8a00 / 4]);
-	dynamic_cast<sh2_sh7604_device *>(m_maincpu.target())->sh2drc_add_fastram(0x0200080, 0x02000ff, 0, &m_clip_ram[0]);
-	dynamic_cast<sh2_sh7604_device *>(m_maincpu.target())->sh2drc_add_fastram(0x0280000, 0x029ffff, 0, &m_vram[0]);
+	dynamic_cast<sh7604_device *>(m_maincpu.target())->sh2drc_add_fastram(0x0100000, 0x01088ff, 0, &m_mainram[0]);
+	dynamic_cast<sh7604_device *>(m_maincpu.target())->sh2drc_add_fastram(0x0108a00, 0x011ffff, 0, &m_mainram[0x8a00 / 4]);
+	dynamic_cast<sh7604_device *>(m_maincpu.target())->sh2drc_add_fastram(0x0200080, 0x02000ff, 0, &m_clip_ram[0]);
+	dynamic_cast<sh7604_device *>(m_maincpu.target())->sh2drc_add_fastram(0x0280000, 0x029ffff, 0, &m_vram[0]);
 
 	m_irqLevel = 1;
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x01089a0, 0x01089a3, read32smo_delegate(*this, FUNC(deco_mlc_state::avengrgs_speedup_r)));
@@ -1057,7 +1057,7 @@ void deco_mlc_state::init_mlc()
 	/* The timing in the ARM core isn't as accurate as it should be, so bump up the
 	    effective clock rate here to compensate otherwise we have slowdowns in
 	    Skull Fang where there probably shouldn't be. */
-	m_maincpu->set_clock_scale(2.0f);
+	m_maincpu->set_clock_scale(2.0);
 	m_irqLevel = ARM_IRQ_LINE;
 	deco156_decrypt(machine());
 	descramble_sound();
@@ -1065,7 +1065,7 @@ void deco_mlc_state::init_mlc()
 
 void deco_mlc_state::init_acchi() // sound ROMs don't appear to be scrambled
 {
-	m_maincpu->set_clock_scale(2.0f);  // avoids hangs in attract mode / end of round, see init_mlc()
+	m_maincpu->set_clock_scale(2.0); // avoids hangs in attract mode / end of round, see init_mlc()
 	m_irqLevel = ARM_IRQ_LINE;
 	deco156_decrypt(machine());
 }

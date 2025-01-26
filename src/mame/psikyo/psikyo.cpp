@@ -37,6 +37,12 @@ To Do:
 NOTE: Despite being mentioned in the manual Strikers 1945 doesn't seem to
       have a Free Play mode.
 
+The tengai PIC dump has been tested on PCB with the available s1945 program ROMs:
+s1945 (World) - working ok
+s1945a (Japan / World) - resets when start pressed
+s1945k (Korea) - working ok
+s1945j (Japan) - boots but locks up with black screen when start pressed
+
 ***************************************************************************/
 
 /***** Gun Bird Japan Crash Notes
@@ -523,7 +529,7 @@ static INPUT_PORTS_START( samuraia )
 	PORT_INCLUDE(psikyo_common)
 
 	PORT_START("COIN")
-	PORT_BIT( 0x00000001, IP_ACTIVE_LOW, IPT_CUSTOM  ) PORT_VBLANK("screen")    // vblank
+	PORT_BIT( 0x00000001, IP_ACTIVE_LOW, IPT_CUSTOM  ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))    // vblank
 	PORT_BIT( 0x00000002, IP_ACTIVE_LOW, IPT_UNKNOWN )  // unused?
 	PORT_BIT( 0x00000004, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000008, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -547,7 +553,7 @@ static INPUT_PORTS_START( samuraia )
 	PORT_BIT( 0x00100000, IP_ACTIVE_LOW, IPT_SERVICE1 )
 	PORT_SERVICE_NO_TOGGLE( 0x00200000, IP_ACTIVE_LOW )
 	PORT_BIT( 0x00400000, IP_ACTIVE_LOW, IPT_TILT )
-	PORT_BIT( 0x00800000, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(psikyo_state, z80_nmi_r)   // From Sound CPU
+	PORT_BIT( 0x00800000, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(FUNC(psikyo_state::z80_nmi_r))   // From Sound CPU
 	PORT_BIT( 0xff000000, IP_ACTIVE_LOW, IPT_UNKNOWN )  // unused?
 
 	PORT_MODIFY("DSW")      /* c00004 -> c00007 */
@@ -623,7 +629,7 @@ static INPUT_PORTS_START( btlkroad )
 	PORT_BIT( 0x00000010, IP_ACTIVE_LOW, IPT_SERVICE1 )
 	PORT_SERVICE_NO_TOGGLE( 0x00000020, IP_ACTIVE_LOW )
 	PORT_BIT( 0x00000040, IP_ACTIVE_LOW, IPT_TILT )
-	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(psikyo_state, z80_nmi_r)   // From Sound CPU
+	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(FUNC(psikyo_state::z80_nmi_r))   // From Sound CPU
 	PORT_BIT( 0x00000100, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000200, IP_ACTIVE_LOW, IPT_BUTTON6 ) PORT_PLAYER(2)
 	PORT_BIT( 0x00000400, IP_ACTIVE_LOW, IPT_BUTTON5 ) PORT_PLAYER(2)
@@ -656,7 +662,7 @@ static INPUT_PORTS_START( btlkroad )
 	PORT_BIT( 0x00000010, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000020, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000040, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM  ) PORT_VBLANK("screen")   // vblank   ACTIVE_HIGH fixes slowdowns, but is it right?
+	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM  ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))   // vblank   ACTIVE_HIGH fixes slowdowns, but is it right?
 	// This DSW is used for debugging the game
 	PORT_DIPNAME( 0x00000100, 0x00000100, DEF_STR( Unknown ) )  PORT_DIPLOCATION("SW3:1")   // tested! - So leave as is until filled in
 	PORT_DIPSETTING(          0x00000100, DEF_STR( Off ) )
@@ -727,7 +733,7 @@ static INPUT_PORTS_START( gunbird )
 	PORT_BIT( 0x00000010, IP_ACTIVE_LOW, IPT_SERVICE1 )
 	PORT_SERVICE_NO_TOGGLE( 0x00000020, IP_ACTIVE_LOW )
 	PORT_BIT( 0x00000040, IP_ACTIVE_LOW, IPT_TILT )
-	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(psikyo_state, z80_nmi_r)   // From Sound CPU
+	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(FUNC(psikyo_state::z80_nmi_r))   // From Sound CPU
 	PORT_BIT( 0x0000ff00, IP_ACTIVE_LOW, IPT_UNKNOWN )
 
 	PORT_MODIFY("DSW")      /* c00004 -> c00007 */
@@ -759,7 +765,7 @@ static INPUT_PORTS_START( gunbird )
 	PORT_BIT( 0x00000010, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000020, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000040, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x00000080, IP_ACTIVE_LOW, IPT_CUSTOM  ) PORT_VBLANK("screen")    // vblank
+	PORT_BIT( 0x00000080, IP_ACTIVE_LOW, IPT_CUSTOM  ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))    // vblank
 	PORT_BIT( 0x00000100, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000200, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000400, IP_ACTIVE_LOW, IPT_UNKNOWN )  // tested!
@@ -788,12 +794,12 @@ static INPUT_PORTS_START( s1945 )
 	PORT_MODIFY("P1_P2")            /* c00000 -> c00003 */
 	PORT_BIT( 0x00000001, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x00000002, IP_ACTIVE_LOW, IPT_COIN2 )
-	PORT_BIT( 0x00000004, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(psikyo_state, mcu_status_r)
+	PORT_BIT( 0x00000004, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(FUNC(psikyo_state::mcu_status_r))
 	PORT_BIT( 0x00000008, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000010, IP_ACTIVE_LOW, IPT_SERVICE1 )
 	PORT_SERVICE_NO_TOGGLE( 0x00000020, IP_ACTIVE_LOW )
 	PORT_BIT( 0x00000040, IP_ACTIVE_LOW, IPT_TILT )
-	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(psikyo_state, z80_nmi_r)   // From Sound CPU
+	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(FUNC(psikyo_state::z80_nmi_r))   // From Sound CPU
 	PORT_BIT( 0x0000ff00, IP_ACTIVE_LOW, IPT_UNKNOWN )
 
 	PORT_MODIFY("DSW")      /* c00004 -> c00007 */
@@ -826,7 +832,7 @@ static INPUT_PORTS_START( s1945 )
 	PORT_BIT( 0x00000010, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000020, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000040, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x00000080, IP_ACTIVE_LOW, IPT_CUSTOM  ) PORT_VBLANK("screen")    // vblank
+	PORT_BIT( 0x00000080, IP_ACTIVE_LOW, IPT_CUSTOM  ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))    // vblank
 	PORT_BIT( 0x00000100, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000200, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000400, IP_ACTIVE_LOW, IPT_UNKNOWN )  // tested!
@@ -898,7 +904,7 @@ static INPUT_PORTS_START( s1945bl )
 
 	// I need to invert the Vblank on this to avoid excessive slowdown
 	PORT_MODIFY("DSW")      /* c00004 -> c00007 */
-	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM  ) PORT_VBLANK("screen")   // vblank
+	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM  ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))   // vblank
 INPUT_PORTS_END
 
 
@@ -912,12 +918,12 @@ static INPUT_PORTS_START( tengai )
 	PORT_MODIFY("P1_P2")            /* c00000 -> c00003 */
 	PORT_BIT( 0x00000001, IP_ACTIVE_LOW, IPT_COIN1 )
 	PORT_BIT( 0x00000002, IP_ACTIVE_LOW, IPT_COIN2 )
-	PORT_BIT( 0x00000004, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(psikyo_state, mcu_status_r)
+	PORT_BIT( 0x00000004, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(FUNC(psikyo_state::mcu_status_r))
 	PORT_BIT( 0x00000008, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000010, IP_ACTIVE_LOW, IPT_SERVICE1 )
 	PORT_SERVICE_NO_TOGGLE( 0x00000020, IP_ACTIVE_LOW )
 	PORT_BIT( 0x00000040, IP_ACTIVE_LOW, IPT_TILT )
-	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(psikyo_state, z80_nmi_r)   // From Sound CPU
+	PORT_BIT( 0x00000080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(FUNC(psikyo_state::z80_nmi_r))   // From Sound CPU
 	PORT_BIT( 0x0000ff00, IP_ACTIVE_LOW, IPT_UNKNOWN )
 
 	PORT_MODIFY("DSW")      /* c00004 -> c00007 */
@@ -942,7 +948,7 @@ static INPUT_PORTS_START( tengai )
 	PORT_BIT( 0x00000010, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000020, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000040, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x00000080, IP_ACTIVE_LOW, IPT_CUSTOM  ) PORT_VBLANK("screen")    // vblank
+	PORT_BIT( 0x00000080, IP_ACTIVE_LOW, IPT_CUSTOM  ) PORT_READ_LINE_DEVICE_MEMBER("screen", FUNC(screen_device::vblank))    // vblank
 	PORT_BIT( 0x00000100, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000200, IP_ACTIVE_LOW, IPT_UNKNOWN )
 	PORT_BIT( 0x00000400, IP_ACTIVE_LOW, IPT_UNKNOWN )  // tested!
@@ -1761,8 +1767,8 @@ ROM_START( tengai )
 	ROM_REGION( 0x001000, "mcu", 0 )       // MCU, not hooked up
 	/* PIC configuration:
 	     -User ID: 37EA
-	     -Watchdog Timer: unknown
-	     -Oscilator Mode: probably XT (unconfirmed)
+	     -Watchdog Timer: unknown - tested on PCB: both settings work
+	     -Oscillator Mode: probably XT (unconfirmed) - tested on PCB: HS and XT work, LP and RC don't
 	*/
 	ROM_LOAD( "4.u59", 0x00000, 0x01000, CRC(e563b054) SHA1(7593389d35851a71a8af2e094ec7e55cd818743a) )
 
@@ -1793,8 +1799,8 @@ ROM_START( tengaij )
 	ROM_REGION( 0x001000, "mcu", 0 )       // MCU, not hooked up
 	/* PIC configuration:
 	     -User ID: 37EA
-	     -Watchdog Timer: unknown
-	     -Oscilator Mode: probably XT (unconfirmed)
+	     -Watchdog Timer: unknown - tested on PCB: both settings work
+	     -Oscillator Mode: probably XT (unconfirmed) - tested on PCB: HS and XT work, LP and RC don't
 	*/
 	ROM_LOAD( "4.u59", 0x00000, 0x01000, CRC(e563b054) SHA1(7593389d35851a71a8af2e094ec7e55cd818743a) ) // From a World PCB
 

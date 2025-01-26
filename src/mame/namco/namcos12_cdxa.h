@@ -27,10 +27,10 @@ public:
 
 	auto psx_int10_callback() { return m_psx_int10_cb.bind(); }
 
-	void psx_map(address_map &map);
+	void amap(address_map &map) ATTR_COLD;
 
-	uint32_t sh2_ram_r(offs_t offset);
-	void sh2_ram_w(offs_t offset, uint32_t data, uint32_t mem_mask = ~0);
+	uint16_t sh2_ram_r(offs_t offset);
+	void sh2_ram_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
 
 	void reset_sh2_w(uint16_t data);
 
@@ -50,12 +50,12 @@ public:
 	void cdrom_cs0_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
 
 protected:
-	virtual void device_start() override;
-	virtual void device_reset() override;
-	virtual void device_add_mconfig(machine_config &config) override;
+	virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
 private:
-	void sh7014_map(address_map &map);
+	void sh7014_map(address_map &map) ATTR_COLD;
 
 	void audio_dac_w(int state);
 
@@ -69,7 +69,7 @@ private:
 
 	void mb87078_gain_changed(offs_t offset, uint8_t data);
 
-	required_device<sh2_sh7014_device> m_maincpu;
+	required_device<sh7014_device> m_maincpu;
 	required_shared_ptr<uint32_t> m_cram;
 	required_shared_ptr<uint32_t> m_sram;
 	required_device<ata_interface_device> m_ata;

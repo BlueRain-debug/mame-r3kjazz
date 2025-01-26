@@ -18,6 +18,9 @@
 #define ENABLE_OVERFLOWS            (0)
 #define ENABLE_EE_ELF_LOADER        (0)
 #define ENABLE_EE_DECI2             (0)
+#define ENABLE_O2_DPRINTF           (0)
+
+#include "o2dprintf.hxx"
 
 /***************************************************************************
     HELPER MACROS
@@ -3753,7 +3756,7 @@ void mips3_device::handle_regimm(uint32_t op)
 
 void mips3_device::handle_mult(uint32_t op)
 {
-	uint64_t temp64 = (int64_t)(int32_t)RSVAL32 * (int64_t)(int32_t)RTVAL32;
+	uint64_t temp64 = mul_32x32(RSVAL32, RTVAL32);
 	LOVAL64 = (int32_t)temp64;
 	HIVAL64 = (int32_t)(temp64 >> 32);
 	m_core->icount -= 3;
@@ -3767,7 +3770,7 @@ void r5900_device::handle_mult(uint32_t op)
 
 void mips3_device::handle_multu(uint32_t op)
 {
-	uint64_t temp64 = (uint64_t)RSVAL32 * (uint64_t)RTVAL32;
+	uint64_t temp64 = mulu_32x32(RSVAL32, RTVAL32);
 	LOVAL64 = (int32_t)temp64;
 	HIVAL64 = (int32_t)(temp64 >> 32);
 	m_core->icount -= 3;
@@ -3903,8 +3906,28 @@ void mips3_device::handle_idt(uint32_t op)
 {
 	switch (op & 0x1f)
 	{
+		case 0: /* MAD */
+			if (RSREG != 0 && RTREG != 0)
+			{
+				int64_t temp64 = mul_32x32(RSVAL32, RTVAL32);
+				temp64 += ((int64_t)m_core->r[REG_HI] << 32) | m_core->r[REG_LO];
+				m_core->r[REG_LO] = (int32_t)temp64;
+				m_core->r[REG_HI] = (int32_t)(temp64 >> 32);
+			}
+			m_core->icount -= 3;
+			break;
+		case 1: /* MADU */
+			if (RSREG != 0 && RTREG != 0)
+			{
+				uint64_t temp64 = mulu_32x32(RSVAL32, RTVAL32);
+				temp64 += ((uint64_t)m_core->r[REG_HI] << 32) | m_core->r[REG_LO];
+				m_core->r[REG_LO] = (uint32_t)temp64;
+				m_core->r[REG_HI] = (uint32_t)(temp64 >> 32);
+			}
+			m_core->icount -= 3;
+			break;
 		case 2: /* MUL */
-			RDVAL64 = (int32_t)((int32_t)RSVAL32 * (int32_t)RTVAL32);
+			if (RDREG) RDVAL64 = (int32_t)((int32_t)RSVAL32 * (int32_t)RTVAL32);
 			m_core->icount -= 3;
 			break;
 		default:
@@ -4021,7 +4044,7 @@ void r5900_device::handle_idt(uint32_t op)
 	{
 		case 0x00: /* MADD */
 		{
-			uint64_t temp64 = (int64_t)(int32_t)RSVAL32 * (int64_t)(int32_t)RTVAL32;
+			uint64_t temp64 = mul_32x32(RSVAL32, RTVAL32);
 			m_core->r[REG_LO] += (int32_t)temp64;
 			m_core->r[REG_HI] += (int32_t)(temp64 >> 32);
 			if (rd)
@@ -4075,7 +4098,7 @@ void r5900_device::handle_idt(uint32_t op)
 			break;
 		case 0x18: /* MULT1 */
 		{
-			uint64_t temp64 = (int64_t)(int32_t)RSVAL32 * (int64_t)(int32_t)RTVAL32;
+			uint64_t temp64 = mul_32x32(RSVAL32, RTVAL32);
 			m_core->rh[REG_LO] = (int32_t)temp64;
 			m_core->rh[REG_HI] = (int32_t)(temp64 >> 32);
 			if (rd)
@@ -5306,10 +5329,6 @@ void r5900_device::handle_sdc2(uint32_t op)
 	}
 }
 
-#if ENABLE_O2_DPRINTF
-#include "o2dprintf.hxx"
-#endif
-
 void mips3_device::execute_run()
 {
 	if (m_isdrc)
@@ -5560,12 +5579,10 @@ void mips3_device::execute_run()
 		m_delayslot = false;
 		m_core->icount--;
 
-#if ENABLE_O2_DPRINTF
-		if (m_core->pc == 0xbfc04d74)
+		if (ENABLE_O2_DPRINTF && m_core->pc == 0xbfc04d74)
 		{
 			do_o2_dprintf((uint32_t)m_core->r[4], (uint32_t)m_core->r[5], (uint32_t)m_core->r[6], (uint32_t)m_core->r[7], (uint32_t)m_core->r[29] + 16);
 		}
-#endif
 
 #if ENABLE_EE_ELF_LOADER
 		static bool elf_loaded = false;

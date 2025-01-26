@@ -24,14 +24,14 @@ public:
 	void evolhh(machine_config &config);
 
 private:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
 	required_device<evo_cpu_device> m_maincpu;
 
-	void evolution_map(address_map &map);
+	void evolution_map(address_map &map) ATTR_COLD;
 };
 
 void evolution_handheldgame_state::machine_start()
@@ -53,13 +53,13 @@ uint32_t evolution_handheldgame_state::screen_update(screen_device &screen, bitm
 
 void evolution_handheldgame_state::evolution_map(address_map &map)
 {
-	map(0x400000, 0x41ffff).rom().region("maincpu", 0x00000);              
+	map(0x400000, 0x41ffff).rom().region("maincpu", 0x00000);
 }
 
 
 void evolution_handheldgame_state::evolhh(machine_config &config)
 {
-	EVOLUTION_CPU(config, m_maincpu, XTAL(16'000'000)); 
+	EVOLUTION_CPU(config, m_maincpu, XTAL(16'000'000));
 	m_maincpu->set_addrmap(AS_PROGRAM, &evolution_handheldgame_state::evolution_map);
 
 	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
@@ -80,4 +80,4 @@ ROM_END
 } // anonymous namespace
 
 
-CONS( 2006, evolhh,      0,       0,      evolhh, evolhh, evolution_handheldgame_state, empty_init, "Kidz Delight", "Evolution Max", MACHINE_IS_SKELETON ) // from a pink 'for girls' unit, exists in other colours, software likely the same
+CONS( 2006, evolhh,      0,       0,      evolhh, evolhh, evolution_handheldgame_state, empty_init, "Kidz Delight", "Evolution Max", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // from a pink 'for girls' unit, exists in other colours, software likely the same

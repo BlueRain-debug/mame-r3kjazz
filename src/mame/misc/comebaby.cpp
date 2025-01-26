@@ -198,8 +198,8 @@ TODO:
 #include "machine/i82371eb_ide.h"
 #include "machine/i82371eb_acpi.h"
 #include "machine/i82371eb_usb.h"
-#include "video/virge_pci.h"
 #include "bus/isa/isa_cards.h"
+#include "bus/pci/virge_pci.h"
 //#include "bus/rs232/hlemouse.h"
 //#include "bus/rs232/null_modem.h"
 //#include "bus/rs232/rs232.h"
@@ -230,7 +230,7 @@ private:
 	// optional for making the compile switch to work
 	optional_device<voodoo_3_pci_device> m_voodoo3;
 
-	void comebaby_map(address_map &map);
+	void comebaby_map(address_map &map) ATTR_COLD;
 
 	static void superio_config(device_t *device);
 };
@@ -304,8 +304,7 @@ void comebaby_state::comebaby(machine_config &config)
 	// TODO: all untested, check clock
 #if ENABLE_VOODOO
 	VOODOO_3_PCI(config, m_voodoo3, 0, m_maincpu, "screen"); // "pci:0d.0" J4D2
-	m_voodoo3->set_fbmem(2);
-	m_voodoo3->set_tmumem(4, 4);
+	m_voodoo3->set_fbmem(16);
 	m_voodoo3->set_status_cycles(1000);
 
 	// TODO: fix legacy raw setup here
@@ -317,7 +316,7 @@ void comebaby_state::comebaby(machine_config &config)
 #else
 	// "pci:0d.0" J4D2
 	// "pci:0e.0" J4D1
-	VIRGE_PCI(config, "pci:0e.0", 0); // J4C1
+	PCI_SLOT(config, "pci:1", pci_cards, 14, 0, 1, 2, 3, "virge").set_fixed(true);
 #endif
 
 }
@@ -334,4 +333,4 @@ ROM_END
 } // anonymous namespace
 
 
-GAME( 2000, comebaby, 0, comebaby, comebaby, comebaby_state, empty_init, ROT0, "ExPotato", "Come On Baby", MACHINE_IS_SKELETON )
+GAME( 2000, comebaby, 0, comebaby, comebaby, comebaby_state, empty_init, ROT0, "ExPotato", "Come On Baby", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
