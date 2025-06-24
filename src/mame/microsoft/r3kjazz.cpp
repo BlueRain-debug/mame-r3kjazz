@@ -162,7 +162,7 @@ protected:
 	required_device<ps2_keyboard_controller_device> m_kbdc;
 	required_device<dp83932c_device> m_net;
 	required_device<screen_device> m_screen;
-	required_device<g300_device> m_cvc;
+	required_device<g364_device> m_cvc;
 	required_device_array<ns16550_device, 2> m_ace;
 	required_device<pc_lpt_device> m_lpt;
 	required_device<i82357_device> m_isp;
@@ -204,16 +204,17 @@ void r3kjazz_state::mct_map(address_map &map)
 	//map(0x60010000, 0x60010000); // id (r/w)
 	//map(0x60020000, 0x60020000); // reset
 
-	// VDR1F "Fission"
-	//map(0x60000000, 0x6007ffff).rom().region("graphics", 0);
-	//map(0x60080000, 0x60081fff).m(m_cvc, FUNC(g364_device::map));
-	//map(0x60100000, 0x60100000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_BIG); }, "little_endian");
-	//map(0x60102000, 0x60102000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_LITTLE); }, "big_endian");
-	//map(0x60180000, 0x60180000).lw8([this] (u8 data) { m_cvc->reset(); }, "g364_reset");
+    // VDR1F "Fission"
+    map(0x60000000, 0x6007ffff).rom().region("graphics", 0);
+    map(0x60000000, 0x60000fff).w(m_cvc, FUNC(g364_device::colour_palette_w_alt));
+    map(0x60080000, 0x60081fff).m(m_cvc, FUNC(g364_device::map));
+    map(0x60100000, 0x60100000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_BIG); }, "little_endian");
+    map(0x60102000, 0x60102000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_LITTLE); }, "big_endian");
+    map(0x60180000, 0x60180000).lw8([this] (u8 data) { m_cvc->reset(); }, "g364_reset");
 	//map(0x60182000, 0x60182000); // TODO: monitor
 
 	// VDR2
-	map(0x60000000, 0x60000fff).m(m_cvc, FUNC(g300_device::map));
+	//map(0x60000000, 0x60000fff).m(m_cvc, FUNC(g300_device::map));
 	//map(0x60008000, 0x60008fff).m(m_cursor, FUNC(bt431_device::map)).umask32(0x000000ff);
 
 	map(0x80000000, 0x80000fff).m(m_mct_adr, FUNC(mct_adr_device::map));
@@ -364,10 +365,10 @@ void r3kjazz_state::r3kjazz(machine_config &config)
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_raw(78643200, 1280, 0, 1280, 1024, 0, 1024);
-	m_screen->set_screen_update(m_cvc, FUNC(g300_device::screen_update));
+	m_screen->set_screen_update(m_cvc, FUNC(g364_device::screen_update));
 	m_screen->screen_vblank().set(m_mct_adr, FUNC(mct_adr_device::irq<3>)); // maybe?
 
-	G300(config, m_cvc, 5_MHz_XTAL); // FIXME: guessed clock
+	G364(config, m_cvc, 5_MHz_XTAL); // FIXME: guessed clock
 	m_cvc->set_screen(m_screen);
 	m_cvc->set_vram(m_vram);
 
@@ -468,7 +469,7 @@ ROM_START(r3000jazz)
 	ROM_SYSTEM_BIOS(0, "j3prom", "Jazz R3000 PROM")
 	ROMX_LOAD("j3prom.bin", 0x00000, 0x40000, NO_DUMP, ROM_BIOS(0))
 
-	//ROM_REGION32_LE(0x800000, "graphics", 0)
+	ROM_REGION32_LE(0x800000, "graphics", 0)
 	// r3kjazz G300 (8.125MHz video clock, Bt431)
 	//ROM_LOAD64_BYTE("r3kjazz_g300.bin", 0x00, 0x40, CRC(258eb00a) SHA1(6e3fd0272957524de82e7042d6e36aca492c4d26) BAD_DUMP)
 	// r3kjazz G364 (8.125MHz video clock)
@@ -476,7 +477,7 @@ ROM_START(r3000jazz)
 	// r3kjazz VXL (aka Jaguar, part number 09-00184, Bt484 or Bt485)
 	//ROM_LOAD64_BYTE("r3kjazz_vxl.bin", 0x000000, 0x010000, CRC(8edf1a62) SHA1(7750833eac0708ee79f01f36523554d29a094692) BAD_DUMP)
 	// MIPS G364 (5MHz video clock, part number 09-00176)
-	//ROM_LOAD32_BYTE("mips_g364.bin", 0x000000, 0x020000, CRC(be6a726e) SHA1(225c198f6a7f8445dac3de052ecceecbb5be6bc7) BAD_DUMP)
+	ROM_LOAD32_BYTE("mips_g364.bin", 0x000000, 0x020000, CRC(be6a726e) SHA1(225c198f6a7f8445dac3de052ecceecbb5be6bc7) BAD_DUMP)
 ROM_END
 
 }

@@ -153,7 +153,7 @@ class g332_device : public ims_cvc_device
 {
 public:
 	g332_device(machine_config const &mconfig, char const *tag, device_t *owner, u32 clock);
-
+	void colour_palette_w_alt(offs_t offset, u32 data) { set_pen_color(offset >> 1, data >> 0, data >> 8, data >> 16); }
 	virtual void map(address_map &map) override ATTR_COLD;
 
 	virtual u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, rectangle const &cliprect);
@@ -262,8 +262,7 @@ class g364_device : public g332_device
 {
 public:
 	g364_device(machine_config const &mconfig, char const *tag, device_t *owner, u32 clock);
-
-	virtual void set_swapped(bool swapped) override { m_swap = swapped ? 7 : 0; }
+	void colour_palette_w_alt(offs_t offset, u32 data) { set_pen_color(offset >> 1, data >> 0, data >> 8, data >> 16); }
 };
 
 DECLARE_DEVICE_TYPE(G300, g300_device)
