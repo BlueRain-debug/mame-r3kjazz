@@ -208,6 +208,7 @@ void jazz_state::mct_map(address_map &map)
 
 	// VDR1F "Fission"
 	map(0x60000000, 0x6007ffff).rom().region("graphics", 0);
+	map(0x60000000, 0x60000fff).w(m_cvc, FUNC(g364_device::colour_palette_w_alt));
 	map(0x60080000, 0x60081fff).m(m_cvc, FUNC(g364_device::map));
 	map(0x60100000, 0x60100000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_BIG); }, "little_endian");
 	map(0x60102000, 0x60102000).lw8([this] (u8 data) { m_cvc->set_swapped(ENDIANNESS_NATIVE == ENDIANNESS_LITTLE); }, "big_endian");
