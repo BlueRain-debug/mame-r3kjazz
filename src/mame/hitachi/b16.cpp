@@ -428,15 +428,16 @@ void b16_state::memory_write_byte(offs_t offset, uint8_t data)
 static void b16_floppies(device_slot_interface &device)
 {
 	device.option_add("525dd", FLOPPY_525_DD);
+    device.option_add("525hd", FLOPPY_525_HD);
 	// TODO: at least PC-98 3.5" x 1.2MB format
 }
 
 void b16_state::floppy_formats(format_registration &fr)
 {
 	fr.add_mfm_containers();
-//  fr.add(FLOPPY_PC98_FORMAT);
-//  fr.add(FLOPPY_PC98FDI_FORMAT);
-//  fr.add(FLOPPY_FDD_FORMAT);
+    fr.add(FLOPPY_PC98_FORMAT);
+    fr.add(FLOPPY_PC98FDI_FORMAT);
+//	fr.add(FLOPPY_FDD_FORMAT);
 //  fr.add(FLOPPY_DCP_FORMAT);
 //  fr.add(FLOPPY_DIP_FORMAT);
 //  fr.add(FLOPPY_NFD_FORMAT);
@@ -499,8 +500,8 @@ void b16_state::b16(machine_config &config)
 	UPD765A(config, m_fdc, XTAL(16'000'000) / 2, true, false);
 	m_fdc->intrq_wr_callback().set(m_intm, FUNC(pic8259_device::ir1_w));
 	m_fdc->drq_wr_callback().set([this] (int state) { logerror("drq %d\n", state);});
-	FLOPPY_CONNECTOR(config, "fdc:0", b16_floppies, "525dd", b16_state::floppy_formats).enable_sound(true);
-	FLOPPY_CONNECTOR(config, "fdc:1", b16_floppies, "525dd", b16_state::floppy_formats).enable_sound(true);
+	FLOPPY_CONNECTOR(config, "fdc:0", b16_floppies, "525hd", b16_state::floppy_formats).enable_sound(true);
+	FLOPPY_CONNECTOR(config, "fdc:1", b16_floppies, "525hd", b16_state::floppy_formats).enable_sound(true);
 
 	/* unknown variant, unknown clock, hand tuned to get ~60 fps */
 	MC6845(config, m_crtc, XTAL(16'000'000)/6);
