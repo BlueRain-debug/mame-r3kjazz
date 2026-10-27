@@ -33,7 +33,6 @@
     - implement S-100 bus features;
         - Move floppy controller to a card
     - complete floppy controller implementation
-    - memory test hangs on the first pass;
     - support switching between 8085 and 8088 CPUs
     - add winchester (hard drive)/controller option
 
@@ -229,7 +228,7 @@ Motherboard Jumpers
 #define LOG_KBD    (1U << 1)
 #define LOG_INTR   (1U << 2)
 
-#define VERBOSE (0xff)
+#define VERBOSE (0)
 #include "logmacro.h"
 
 #define LOGKBD(...)    LOGMASKED(LOG_KBD,    __VA_ARGS__)
@@ -252,6 +251,7 @@ public:
 		, m_maincpu(*this, "maincpu")
 		, m_sec_cpu(*this, "sec_cpu")
 		, m_ram(*this, "ram")
+		, m_rom(*this, "ipl")
 		, m_pia(*this, "pia%u", 0U)
 		, m_picm(*this, "pic8259_master")
 		, m_pics(*this, "pic8259_slave")
@@ -281,6 +281,8 @@ private:
 	virtual void machine_reset() override ATTR_COLD;
 	virtual void video_start() override ATTR_COLD;
 
+	u8 memory_r(offs_t offset);
+	offs_t ram_addr(offs_t offset) const;
 	u8 ram_r(offs_t offset);
 	void ram_w(offs_t offset, u8 data);
 	void memory_ctrl_w(u8 data);
@@ -314,6 +316,7 @@ private:
 	required_device<cpu_device> m_maincpu;
 	required_device<cpu_device> m_sec_cpu;
 	required_shared_ptr<u8> m_ram;
+	required_region_ptr<u8> m_rom;
 	required_device_array<pia6821_device, 2> m_pia;
 	required_device<pic8259_device> m_picm;
 	required_device<pic8259_device> m_pics;
@@ -380,8 +383,45 @@ void z100_state::video_start()
 	m_vidint_enable = false;
 }
 
+u8 z100_state::memory_r(offs_t offset)
+{
+	// ROM overlays reads only; RAM writes remain available in every ROM mode.
+	const u8 rom_mode = BIT(m_memory_ctrl, 2, 2);
+	if (rom_mode == 0 || (rom_mode == 1 && (offset & 0xffff) >= 0xc000)
+		|| (rom_mode == 2 && offset >= 0xfc000))
+		return m_rom[offset & 0x3fff];
+
+	if (offset < m_ram.bytes())
+		return ram_r(offset);
+	if (offset >= 0xc0000 && offset < 0xf0000)
+		return z100_vram_r(offset - 0xc0000);
+	return 0xff;
+}
+
+offs_t z100_state::ram_addr(offs_t offset) const
+{
+	// MEMCTL selects the RAM windows used by 8085 operating systems.
+	switch (BIT(m_memory_ctrl, 0, 2))
+	{
+	case 1:
+		if (offset < 0x20000 && (offset & 0xffff) < 0xc000)
+			offset ^= 0x10000;
+		break;
+	case 2:
+		if ((offset < 0xc000) || (offset >= 0x20000 && offset < 0x2c000))
+			offset ^= 0x20000;
+		break;
+	case 3:
+		if (offset < 0x20000 && (offset & 0xffff) >= 0x1000 && (offset & 0xffff) < 0xf000)
+			offset ^= 0x10000;
+		break;
+	}
+	return offset;
+}
+
 u8 z100_state::ram_r(offs_t offset)
 {
+	offset = ram_addr(offset);
 	if (!machine().side_effects_disabled() && BIT(m_memory_ctrl, 5))
 	{
 		u32 parity = m_parity[offset >> 5];
@@ -394,12 +434,13 @@ u8 z100_state::ram_r(offs_t offset)
 
 void z100_state::ram_w(offs_t offset, u8 data)
 {
+	offset = ram_addr(offset);
 	u32 &parity = m_parity[offset >> 5];
 
 	if (!BIT(m_memory_ctrl, 4) && BIT(std::popcount(data), 0))
-		parity |= 1 << (offset & 31);
+		parity |= u32(1) << (offset & 31);
 	else if (parity != 0)
-		parity &= ~(1 << (offset & 31));
+		parity &= ~(u32(1) << (offset & 31));
 
 	m_ram[offset] = data;
 }
@@ -452,7 +493,7 @@ offs_t z100_state::vram_map(offs_t offset) const
 
 u8 z100_state::z100_vram_r(offs_t offset)
 {
-	return m_gvram[vram_map(offset)];
+	return m_vram_enable ? m_gvram[vram_map(offset)] : 0xff;
 }
 
 void z100_state::z100_vram_w(offs_t offset, u8 data)
@@ -483,7 +524,7 @@ void z100_state::z100_mem(address_map &map)
 //  map(0xf0000,0xf0fff) // network card (NET-100)
 //  map(0xf4000,0xf7fff) // MTRET-100 Firmware I expansion ROM
 //  map(0xf8000,0xfbfff) // MTRET-100 Firmware II expansion ROM check ID 0x4550
-	map(0xfc000, 0xfffff).rom().region("ipl", 0);
+	map(0x00000, 0xfffff).r(FUNC(z100_state::memory_r));
 }
 
 void z100_state::kbd_col_w(u8 data)
@@ -813,9 +854,9 @@ u8 z100_state::get_slave_ack(offs_t offset)
 {
 	LOGINTR("%s: offset: 0x%02x\n", FUNCNAME, offset);
 
-	if (offset == 7) // IRQ = 7
+	if (offset == 3) // Slave INT is connected to master IR3
 	{
-		LOGINTR("%s: m_pics->acknowledge()\n", FUNCNAME, offset);
+		LOGINTR("%s: m_pics->acknowledge()\n", FUNCNAME);
 
 		return m_pics->acknowledge();
 	}
@@ -850,7 +891,8 @@ void z100_state::video_pia_B_w(u8 data)
 // clear screen
 void z100_state::video_pia_CA2_w(int state)
 {
-	std::fill_n(&m_gvram[0], 0x30000, m_clr_val);
+	if (!state)
+		std::fill_n(&m_gvram[0], 0x30000, m_clr_val);
 }
 
 void z100_state::video_pia_CB2_w(int state)
@@ -873,6 +915,12 @@ void z100_state::machine_reset()
 			m_palette->set_pen_color(i, pal3bit(0), pal3bit(i), pal3bit(0));
 	}
 
+	m_kbd_col = 0;
+	m_start_addr = 0;
+	m_clr_val = 0;
+	m_tmr_status = 0;
+	m_vidint_enable = false;
+	m_picm->ir2_w(0);
 	memory_ctrl_w(0);
 }
 
